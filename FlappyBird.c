@@ -68,9 +68,10 @@ void main () {
 	
 
 	while (!WindowShouldClose()) {
-	
-	
+			
+		int NEXTPIPE = -1;
 
+		
 		if (GAME_OVER == false && GAME_MODE == true) {
 
 			MOV_Y += GRAVITY;
@@ -97,9 +98,7 @@ void main () {
                                 HITBOX_BONECO_X,
                                 HITBOX_BONECO_Y
                         };
-       				
-			
-			int NEXTPIPE = -1;
+       			
 
 			for (int i = 0; i < 50; i++) {
 	
@@ -112,7 +111,7 @@ void main () {
 				COLISÃO_BAIXO = CheckCollisionRecs (BONECOHITBOX, PIPEBAIXO);	
 				
 								
-				if (colunas[i].pipe_x + 70 >= POS_INICIAL_X && NEXTPIPE == -1) { //Enquanto o Boneco tiver atrás do Pipe, o NEXTPIPE vai ser sempre o mesmo índice
+				if (colunas[i].pipe_x + 70 >= POS_INICIAL_X && NEXTPIPE == -1) { //Enquanto o Boneco tiver atrás do Pipe, o NEXTPIPE vai ser sempre o mesmo índice, só reseta quando for maior que a POS_INICIAL_X
 					NEXTPIPE = i;
 				}
 				
@@ -133,8 +132,8 @@ void main () {
 					colunas[i].pipe_x -= 1.5;
 					}
 
-				}
-
+				}	
+			
 
 			
 			if (NEXTPIPE != -1) {
@@ -170,13 +169,15 @@ void main () {
 
 
 		DrawTextureEx(BONECO, (Vector2) {POS_INICIAL_X, POS_INICIAL_Y}, 0, 0.5,  WHITE);
-
+	
 
 		for (int i = 0; i < 50; i++) {
 
 			DrawText(TextFormat("X_TO_NEXTPIPE = %i", X_TO_NEXTPIPE), 10, 40, 15, BLACK);
 			DrawText(TextFormat("PIPE_GAP = %i", GAP_PIPE), 10, 80, 15, BLACK);
+			DrawText(TextFormat("NEXTPIPE = %i", NEXTPIPE), 10, 120, 15, BLACK);
 			
+
 			DrawRectangle (colunas[i].pipe_x, 0, 70, colunas[i].altura_pipeteto, GREEN);
 			DrawRectangle (colunas[i].pipe_x + 2, (HEIGHT - colunas[i].altura_pipechão), 70, colunas[i].altura_pipechão, GREEN);
 		}
