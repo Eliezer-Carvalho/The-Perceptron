@@ -18,7 +18,13 @@ bool COLISÃO_BAIXO = false;
 bool GAME_OVER = false;
 bool GAME_MODE = false;
 
+
 int SCORE = 0;
+
+
+int X_TO_NEXTPIPE = 0;
+int GAP_PIPE = 0;
+
 
 struct pipes {
 	float pipe_x;
@@ -91,11 +97,13 @@ void main () {
                                 HITBOX_BONECO_X,
                                 HITBOX_BONECO_Y
                         };
-       		
+       				
+			
+			int NEXTPIPE = -1;
 
 			for (int i = 0; i < 50; i++) {
-
 	
+		
 				Rectangle PIPECIMA = {colunas[i].pipe_x, 0, 70, colunas[i].altura_pipeteto};
 				Rectangle PIPEBAIXO = {colunas[i].pipe_x + 2, (HEIGHT - colunas[i].altura_pipechão), 70, colunas[i].altura_pipechão};
 				
@@ -103,6 +111,12 @@ void main () {
 				COLISÃO_CIMA = CheckCollisionRecs (BONECOHITBOX, PIPECIMA);
 				COLISÃO_BAIXO = CheckCollisionRecs (BONECOHITBOX, PIPEBAIXO);	
 				
+								
+				if (colunas[i].pipe_x + 70 >= POS_INICIAL_X && NEXTPIPE == -1) { //Enquanto o Boneco tiver atrás do Pipe, o NEXTPIPE vai ser sempre o mesmo índice
+					NEXTPIPE = i;
+				}
+				
+
 				if (COLISÃO_CIMA == true || COLISÃO_BAIXO == true) 
 				{
 					GAME_OVER = true;
@@ -116,12 +130,22 @@ void main () {
 
 
 				if (GAME_OVER == false) {
-					colunas[i].pipe_x -= 2.5;
+					colunas[i].pipe_x -= 1.5;
 					}
 
-
-					
 				}
+
+
+			
+			if (NEXTPIPE != -1) {
+					
+				X_TO_NEXTPIPE = (colunas[NEXTPIPE].pipe_x + 70) - POS_INICIAL_X;
+				GAP_PIPE = HEIGHT - (colunas[NEXTPIPE].altura_pipeteto + colunas[NEXTPIPE].altura_pipeteto);	
+					
+				}		
+					
+				
+				
 			}
 
 		
@@ -146,11 +170,13 @@ void main () {
 
 
 		DrawTextureEx(BONECO, (Vector2) {POS_INICIAL_X, POS_INICIAL_Y}, 0, 0.5,  WHITE);
-	
 
 
 		for (int i = 0; i < 50; i++) {
-	
+
+			DrawText(TextFormat("X_TO_NEXTPIPE = %i", X_TO_NEXTPIPE), 10, 40, 15, BLACK);
+			DrawText(TextFormat("PIPE_GAP = %i", GAP_PIPE), 10, 80, 15, BLACK);
+			
 			DrawRectangle (colunas[i].pipe_x, 0, 70, colunas[i].altura_pipeteto, GREEN);
 			DrawRectangle (colunas[i].pipe_x + 2, (HEIGHT - colunas[i].altura_pipechão), 70, colunas[i].altura_pipechão, GREEN);
 		}
