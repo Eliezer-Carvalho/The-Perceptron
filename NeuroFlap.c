@@ -50,8 +50,15 @@ typedef struct {
 double sigmoid_function (double x) {
 	
 	//return  x / (1 + fabs(x));
+	sigfunc = 1.0 / (1.0 + exp(-x));
 
-	return 1.0 / (1.0 + exp(-x));
+	if (sigfunc > 0.5) {
+	
+		MOV_Y = -8.8;
+	
+	}
+
+		
 }
 
 
@@ -71,14 +78,15 @@ void EXECUÇÃO_NEURÓNIO (NEURÓNIO* neurónio, float POS_INICIAL_Y, int X_TO_N
 	
 	double sum = (POS_INICIAL_Y * neurónio -> weights[0]) + (X_TO_NEXTPIPE * neurónio -> weights [1]) + (GAP_PIPE * neurónio -> weights[2]) + neurónio -> bias;
 
-	double output = sigmoid_function (sum);	
+	return sum;
+/*	double output = sigmoid_function (sum);	
 			
 		if (output > 0.5) {
 			if (MOV_Y > 0) {
                         	MOV_Y = -8.8; //***
                		}
 		}
-
+*/
 }
 
 
@@ -98,8 +106,13 @@ void main () {
 
 	NEURÓNIO neu3;
 	INICIO_NEURÓNIO (&neu3);
-
 	
+	NEURÓNIO neu4;
+	INICIO_NEURÓNIO (&neu4);
+
+	NEURÓNIO neu5;
+	INICIO_NEURÓNIO (&neu5);
+
 
 	InitWindow(WIDTH, HEIGHT, "Flappy Bird");
 	SetTargetFPS(FPS);
@@ -204,8 +217,15 @@ void main () {
 
                                 }
 
-			EXECUÇÃO_NEURÓNIO (&neu, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH , (GAP_PIPE - 150) / 150 );
-			
+			double ex1 = EXECUÇÃO_NEURÓNIO (&neu, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH , (GAP_PIPE - 150) / 150 );
+			double ex2 = EXECUÇÃO_NEURÓNIO (&neu2, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH, (GAP_PIPE - 150) / 150 );
+			double ex3 = EXECUÇÃO_NEURÓNIO (&neu3, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH, (GAP_PIPE - 150) / 150 );
+			double ex4 = EXECUÇÃO_NEURÓNIO (&neu4, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH, (GAP_PIPE - 150) / 150 );
+			double ex5 = EXECUÇÃO_NEURÓNIO (&neu5, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH, (GAP_PIPE - 150) / 150 );
+
+			double summ = ex1 + ex2 + ex3 + ex4 + ex5;
+
+			sigmoid_function (summ);
 					
 				}
 			}
