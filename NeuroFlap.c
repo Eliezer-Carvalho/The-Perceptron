@@ -87,10 +87,19 @@ void EXECUÇÃO_NEURÓNIO (NEURÓNIO* neurónio, float POS_INICIAL_Y, int X_TO_N
 void main () {
 
 	srand(time(NULL));
+	
 
+	
 	NEURÓNIO neu;
-	INICIO_NEURÓNIO(&neu);
+	INICIO_NEURÓNIO (&neu);
 
+	NEURÓNIO neu2;
+	INCIO_NEURÓNIO (&neu2);
+
+	NEURÓNIO neu3;
+	INICIO_NEURÓNIO (&neu3);
+
+	
 
 	InitWindow(WIDTH, HEIGHT, "Flappy Bird");
 	SetTargetFPS(FPS);
@@ -196,7 +205,7 @@ void main () {
                                 }
 
 			EXECUÇÃO_NEURÓNIO (&neu, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH , (GAP_PIPE - 150) / 150 );
-
+			
 					
 				}
 			}
