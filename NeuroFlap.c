@@ -21,11 +21,11 @@ bool COLISÃO_CIMA = false;
 bool COLISÃO_BAIXO = false;
 bool GAME_OVER = false;
 bool GAME_MODE = false;
+bool REDE_MODE = true;
 
 int SCORE = 0;
 int X_TO_NEXTPIPE = 0;
 int GAP_PIPE = 0;
-
 
 struct pipes {
 	float pipe_x;
@@ -50,7 +50,7 @@ typedef struct {
 double sigmoid_function (double x) {
 	
 	//return  x / (1 + fabs(x));
-	sigfunc = 1.0 / (1.0 + exp(-x));
+	double sigfunc = 1.0 / (1.0 + exp(-x));
 
 	if (sigfunc > 0.5) {
 	
@@ -74,20 +74,41 @@ void INICIO_NEURÓNIO (NEURÓNIO* neurónio) {
 }
 
 
-void EXECUÇÃO_NEURÓNIO (NEURÓNIO* neurónio, float POS_INICIAL_Y, int X_TO_NEXTPIPE, int GAP_PIPE) {
+double EXECUÇÃO_NEURÓNIO (NEURÓNIO* neurónio, float POS_INICIAL_Y, int X_TO_NEXTPIPE, int GAP_PIPE) {
 	
 	double sum = (POS_INICIAL_Y * neurónio -> weights[0]) + (X_TO_NEXTPIPE * neurónio -> weights [1]) + (GAP_PIPE * neurónio -> weights[2]) + neurónio -> bias;
 
-	return sum;
-/*	double output = sigmoid_function (sum);	
-			
+	double output = sigmoid_function (sum);	
+
+	return output;
+
+}
+double SAÍDA_HIDDEN_LAYER (double hl_1, double hl_2, double hl_3, double hl_4, double hl_5) {
+
+	double weight [4];
+
+	for (int i = 0; i < 4; i++) {
+		
+		weight[i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+	}
+
+	double bias2 = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+
+
+	double summm = hl_1 * weight[0] + hl_2 * weight[1] + hl_3 * weight[2] + hl_4 * weight[3] + hl_5 * weight[4] + bias2;
+
+
+	sigmoid_function(summm);
+
+}
+/*			
 		if (output > 0.5) {
 			if (MOV_Y > 0) {
                         	MOV_Y = -8.8; //***
                		}
 		}
 */
-}
+
 
 
 
@@ -102,7 +123,7 @@ void main () {
 	INICIO_NEURÓNIO (&neu);
 
 	NEURÓNIO neu2;
-	INCIO_NEURÓNIO (&neu2);
+	INICIO_NEURÓNIO (&neu2);
 
 	NEURÓNIO neu3;
 	INICIO_NEURÓNIO (&neu3);
@@ -222,10 +243,11 @@ void main () {
 			double ex3 = EXECUÇÃO_NEURÓNIO (&neu3, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH, (GAP_PIPE - 150) / 150 );
 			double ex4 = EXECUÇÃO_NEURÓNIO (&neu4, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH, (GAP_PIPE - 150) / 150 );
 			double ex5 = EXECUÇÃO_NEURÓNIO (&neu5, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH, (GAP_PIPE - 150) / 150 );
-
-			double summ = ex1 + ex2 + ex3 + ex4 + ex5;
-
-			sigmoid_function (summ);
+		
+			if (REDE_MODE == true) {	
+				SAÍDA_HIDDEN_LAYER (ex1, ex2, ex3, ex4, ex5);
+				REDE_MODE = false;
+			}
 					
 				}
 			}
