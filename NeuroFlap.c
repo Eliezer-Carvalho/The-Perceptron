@@ -27,6 +27,9 @@ int SCORE = 0;
 int X_TO_NEXTPIPE = 0;
 int GAP_PIPE = 0;
 
+//
+double erro = 0;
+
 struct pipes {
 	float pipe_x;
 	int altura_pipeteto;
@@ -45,6 +48,11 @@ typedef struct {
 
 } NEURÓNIO;
 
+typedef struct {
+	double FINAL;
+	double FINAL_derivada_output;
+       	double delta;
+} VALORES;
 
 
 double sigmoid_function (double x) {
@@ -57,8 +65,17 @@ double sigmoid_function (double x) {
 		MOV_Y = -8.8;
 	
 	}
-
+	
+	return (sigfunc);
 		
+}
+
+double derivada_sigmoid_function (double y) {
+
+	double derivada = y * (1 - y);
+
+	return (derivada);
+
 }
 
 
@@ -78,16 +95,17 @@ double EXECUÇÃO_NEURÓNIO (NEURÓNIO* neurónio, float POS_INICIAL_Y, int X_TO
 	
 	double sum = (POS_INICIAL_Y * neurónio -> weights[0]) + (X_TO_NEXTPIPE * neurónio -> weights [1]) + (GAP_PIPE * neurónio -> weights[2]) + neurónio -> bias;
 
-	double output = sigmoid_function (sum);	
+	double output = sigmoid_function (sum);
 
-	return output;
+	double derivada_output = derivada_sigmoid_function (output);	
+	 
 
 }
 double SAÍDA_HIDDEN_LAYER (double hl_1, double hl_2, double hl_3, double hl_4, double hl_5) {
 
-	double weight [4];
+	double weight [5];
 
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 5; i++) {
 		
 		weight[i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
 	}
@@ -97,10 +115,17 @@ double SAÍDA_HIDDEN_LAYER (double hl_1, double hl_2, double hl_3, double hl_4, 
 
 	double summm = hl_1 * weight[0] + hl_2 * weight[1] + hl_3 * weight[2] + hl_4 * weight[3] + hl_5 * weight[4] + bias2;
 
+	double FINAL = sigmoid_function(summm);
+	double FINAL_derivada_output = derivada_sigmoid_function (FINAL);
 
-	sigmoid_function(summm);
+	double delta = (1 - FINAL) * FINAL_derivada_output;
 
+	VALORES saída_output_layer  = {FINAL, FINAL_derivada_output, delta};
+
+	return saída_output_layer;
 }
+
+ 
 /*			
 		if (output > 0.5) {
 			if (MOV_Y > 0) {
@@ -244,10 +269,10 @@ void main () {
 			double ex4 = EXECUÇÃO_NEURÓNIO (&neu4, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH, (GAP_PIPE - 150) / 150 );
 			double ex5 = EXECUÇÃO_NEURÓNIO (&neu5, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH, (GAP_PIPE - 150) / 150 );
 		
-			if (REDE_MODE == true) {	
-				SAÍDA_HIDDEN_LAYER (ex1, ex2, ex3, ex4, ex5);
-				REDE_MODE = false;
-			}
+				
+			double decisão = SAÍDA_HIDDEN_LAYER (ex1, ex2, ex3, ex4, ex5);
+									
+			printf ("delta = %lf", decisão.delta);
 					
 				}
 			}
@@ -338,4 +363,4 @@ void main () {
 
 
 
-
+//ERRO NA HIDDEN LAYER, LOOP DE RANDOM NUMBERS
