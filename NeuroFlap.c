@@ -41,12 +41,33 @@ struct pipes {
 
 typedef struct {
 
-	double input [3];
-	double weights [3];
+	double weights[3];
 
 	double bias;
 
+	double soma;
+	double sigmoid;
+	double derivada_sigmoid;
+
+	double delta;
+
 } NEURÓNIO;
+
+
+typedef struct {
+
+	double final_weights [5];
+	double final_bias;
+	double final_soma;
+	
+	double sigmoid_output;
+	
+	double delta;
+
+} OUTPUT;
+
+
+/*
 
 typedef struct {
 
@@ -62,101 +83,73 @@ typedef struct {
        	double delta;
 } VALORES;
 
+*/
 
-double sigmoid_function (double x) {
+void GERAÇÃO_PESOS_ALEATÓRIOS (NEURÓNIO* neurónio) {
+
+
+	for (int i = 0; i < 3; i++) {
+
+		neurónio -> weights [i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+	}
+
+	neurónio -> bias = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+
+}
+
+
+
+
+double FUNÇÃO_SIGMOID (double x) {
 	
 	//return  x / (1 + fabs(x));
 	double sigfunc = 1.0 / (1.0 + exp(-x));
 	
-	return (sigfunc);
-		
+	return (sigfunc);		
 }
 
-double derivada_sigmoid_function (double y) {
+double DERIVADA_FUNÇÃO_SIGMOID (double y) {
 
 	double derivada = y * (1 - y);
 
 	return (derivada);
+}
+
+
+double FORWARD_PROP (NEURÓNIO* neurónio, double INPUT1, double INPUT2, double INPUT3) {
+
+	neurónio -> soma = INPUT1 * neurónio -> weights[0] +
+	       		   INPUT2 * neurónio -> weights[1] + 
+		    	   INPUT3 * neurónio -> weights[2] +
+	       		   neurónio -> bias;
+
+	neurónio -> sigmoid = FUNÇÃO_SIGMOID(neurónio -> soma);
+
+
+
+	return neurónio -> sigmoid;
 
 }
 
 
-void INICIO_NEURÓNIO (NEURÓNIO* neurónio) {
+double FORWARD_PROP_OUTPUT (OUTPUT *x, double a, double b, double c, double d, double e) {
 
-	for (int i = 0; i < 3; i++) {
-
-		neurónio -> weights[i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;;
-
-	}
-
-	neurónio -> bias = ((double)rand() / RAND_MAX) * 2.0 - 1.0;;
-}
+	x -> final_soma = a * x -> final_weights[0] + 
+	       		    b * x -> final_weights[1] +
+		    	    c * x -> final_weights[2] +
+			    d * x -> final_weights[3] +
+			    e * x -> final_weights[4] +
+			    x -> final_bias;
 
 
-double EXECUÇÃO_NEURÓNIO (NEURÓNIO* neurónio, float POS_INICIAL_Y, int X_TO_NEXTPIPE, int GAP_PIPE) {
+	x -> sigmoid_output = FUNÇÃO_SIGMOID(x -> final_soma);
+
 	
-	double sum = (POS_INICIAL_Y * neurónio -> weights[0]) + (X_TO_NEXTPIPE * neurónio -> weights [1]) + (GAP_PIPE * neurónio -> weights[2]) + neurónio -> bias;
+	x -> delta = x -> sigmoid_output - 1
 
-	double output = sigmoid_function (sum);
-
-	double derivada_output = derivada_sigmoid_function (output);	
-	 
-	return output;
+	return x -> sigmoid_output;	
 
 }
-
-
-double SAÍDA_HIDDEN_LAYER (OUTPUT_HIDDEN_LAYER* x, double hl_1, double hl_2, double hl_3, double hl_4, double hl_5) {
-	
-	
-	
-	double summm = hl_1 * x -> hl_weights[0] + hl_2 * x -> hl_weights[1] + hl_3 * x -> hl_weights[2] + hl_4 * x -> hl_weights[3] + hl_5 * x -> hl_weights[4] + x -> bias_hl;
-
-	double FINAL = sigmoid_function(summm);
-
-
-	return FINAL;
-	//if (FINAL > 0.5) {
-	
-	//	MOV_Y = -8.8;
-//	}
-
-	
-
-/*
-	double delta = (1 - FINAL) * FINAL_derivada_output;
-
-	VALORES saída_output_layer  = {FINAL, FINAL_derivada_output, delta};
-
-	return saída_output_layer;
-*/
-}
-
-
-double DERIVADA_OUTPUT_LAYER (double sigmoid_funct) {
-
-	double FINAL_derivada_output = derivada_sigmoid_function (sigmoid_funct);
-
-	return FINAL_derivada_output;
-
-}
-
-
-
-
-
-
-double BACKPROP_hidden_layer (NEURÓNIO* neee, NEURÓNIO* nee1, NEURÓNIO* neee2, NEURÓNIO* neee3, NEURÓNIO* neee4, NEURÓNIO* neee5, double delta
-
- 
-/*			
-		if (output > 0.5) {
-			if (MOV_Y > 0) {
-                        	MOV_Y = -8.8; //***
-               		}
-		}
-*/
-
 
 
 
@@ -165,33 +158,30 @@ void main () {
 
 	srand(time(NULL));
 	
+	NEURÓNIO neurónio_hidden_layer [5];
 
-	NEURÓNIO neu;
-	INICIO_NEURÓNIO (&neu);
-
-	NEURÓNIO neu2;
-	INICIO_NEURÓNIO (&neu2);
-
-	NEURÓNIO neu3;
-	INICIO_NEURÓNIO (&neu3);
-
-	NEURÓNIO neu4;
-	INICIO_NEURÓNIO (&neu4);
-
-	NEURÓNIO neu5;
-	INICIO_NEURÓNIO (&neu5);
-
-
-
-	OUTPUT_HIDDEN_LAYER hidden_layer;
 	for (int i = 0; i < 5; i++) {
 		
-		hidden_layer.hl_weights [i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+		GERAÇÃO_PESOS_ALEATÓRIOS (&neurónio_hidden_layer[i]);
+
 	}
 
-	hidden_layer.bias_hl = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+
+
+
+	OUTPUT output;
+	for (int i = 0; i < 5; i++) {
+		
+		output.final_weights [i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+	}
+
+	output.final_bias = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
 	
-	
+
+
+
+
+
 	
 	InitWindow(WIDTH, HEIGHT, "Flappy Bird");
 	SetTargetFPS(FPS);
@@ -296,20 +286,21 @@ void main () {
 
                                 }
 
-			double ex1 = EXECUÇÃO_NEURÓNIO (&neu, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH , (GAP_PIPE - 150) / 150 );
-			double ex2 = EXECUÇÃO_NEURÓNIO (&neu2, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH, (GAP_PIPE - 150) / 150 );
-			double ex3 = EXECUÇÃO_NEURÓNIO (&neu3, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH, (GAP_PIPE - 150) / 150 );
-			double ex4 = EXECUÇÃO_NEURÓNIO (&neu4, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH, (GAP_PIPE - 150) / 150 );
-			double ex5 = EXECUÇÃO_NEURÓNIO (&neu5, POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH, (GAP_PIPE - 150) / 150 );
+			double ex1 = FORWARD_PROP (&neurónio_hidden_layer[0], (double)POS_INICIAL_Y / (double)HEIGHT, (double) X_TO_NEXTPIPE / (double)WIDTH, ((double)GAP_PIPE - 150) / 150 );
+			double ex2 = FORWARD_PROP (&neurónio_hidden_layer[1], (double)POS_INICIAL_Y / (double)HEIGHT, (double) X_TO_NEXTPIPE / (double)WIDTH, ((double)GAP_PIPE - 150) / 150 );
+			double ex3 = FORWARD_PROP (&neurónio_hidden_layer[2], (double)POS_INICIAL_Y / (double)HEIGHT, (double) X_TO_NEXTPIPE / (double)WIDTH, ((double)GAP_PIPE - 150) / 150 );
+			double ex4 = FORWARD_PROP (&neurónio_hidden_layer[3], (double)POS_INICIAL_Y / (double)HEIGHT, (double) X_TO_NEXTPIPE / (double)WIDTH, ((double)GAP_PIPE - 150) / 150 );
+			double ex5 = FORWARD_PROP (&neurónio_hidden_layer[4], (double)POS_INICIAL_Y / (double)HEIGHT, (double) X_TO_NEXTPIPE / (double)WIDTH, ((double)GAP_PIPE - 150) / 150 );
+			
+
+			double fim = FORWARD_PROP_OUTPUT(&output, ex1, ex2, ex3, ex4, ex5);
+
+			printf ("%lf\n", fim);
+
+			if (fim > 0.5) {
 		
-				
-			double decisão = SAÍDA_HIDDEN_LAYER (&hidden_layer, ex1, ex2, ex3, ex4, ex5);
-			double derivada_decisão = DERIVADA_OUTPUT_LAYER (decisão);	
-				
-			printf ("Sigmoid Function da Final Layer = %lf\n", decisão);
-			printf ("Derivada da Sigmoid Function da Final Layer = %lf\n", derivada_decisão);
-			printf ("Delta = %lf (Taxa de Erro) * %lf (Derivada) = %lf\n\n", decisão - 1, derivada_decisão, (decisão - 1) * derivada_decisão);			
-	
+				MOV_Y = -8.8;
+			}
 					
 				}
 			}
@@ -338,9 +329,9 @@ void main () {
 
 		DrawTextureEx(BONECO, (Vector2) {POS_INICIAL_X, POS_INICIAL_Y}, 0, 0.5,  WHITE);
 	
-		DrawText(TextFormat("POS_INICIAL_Y NORMALIZADA = %f", POS_INICIAL_Y / HEIGHT), 10, 160, 15, BLACK);
-		DrawText(TextFormat("X_TO_NEXTPIPE NORMALIZADO = %f", X_TO_NEXTPIPE / 900.0), 10, 200, 15, BLACK);
-		DrawText(TextFormat("GAP_PIPE NORMALIZADO = %f", (GAP_PIPE - 150) / 150.0), 10, 240, 15, BLACK);
+		DrawText(TextFormat("POS_INICIAL_Y NORMALIZADA = %lf", POS_INICIAL_Y / HEIGHT), 10, 160, 15, BLACK);
+		DrawText(TextFormat("X_TO_NEXTPIPE NORMALIZADO = %lf", X_TO_NEXTPIPE / 900.0), 10, 200, 15, BLACK);
+		DrawText(TextFormat("GAP_PIPE NORMALIZADO = %lf", (GAP_PIPE - 150) / 150.0), 10, 240, 15, BLACK);
 
 
 		for (int i = 0; i < 50; i++) {
