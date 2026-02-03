@@ -26,9 +26,12 @@ bool REDE_MODE = true;
 int SCORE = 0;
 int X_TO_NEXTPIPE = 0;
 int GAP_PIPE = 0;
+static int AÇÃO = 0;
+int EPOCH = 0;
+int NEW_RECORD = 0;
 
-double TARGET = 1;
-double TAXA_APRENDIZAGEM = 0.1;
+double TARGET = 0.55;
+double TAXA_APRENDIZAGEM = 0.0001;
 
 struct pipes {
 	float pipe_x;
@@ -67,24 +70,6 @@ typedef struct {
 
 } OUTPUT;
 
-
-/*
-
-typedef struct {
-
-	double hl_weights [5];
-	double bias_hl;
-
-} OUTPUT_HIDDEN_LAYER; 
-
-
-typedef struct {
-	double FINAL;
-	double FINAL_derivada_output;
-       	double delta;
-} VALORES;
-
-*/
 
 void GERAÇÃO_PESOS_ALEATÓRIOS (NEURÓNIO* neurónio) {
 
@@ -231,6 +216,40 @@ void main () {
 		pipe_x += 250; //CRIA DUOS DE PIPES DE 200 EM 200
 	}
 
+	
+	void reset_game () {
+
+        POS_INICIAL_Y = HEIGHT / 2;
+        POS_INICIAL_X = 100;
+        MOV_Y = 0;
+
+	EPOCH += 1;
+        AÇÃO = 0;
+        GAME_OVER = false;
+
+	if (SCORE > NEW_RECORD) {
+		SCORE = NEW_RECORD;
+	}
+
+	SCORE = 0;
+	TARGET = 0;
+
+	float pipe_x = 640;
+
+	for (int i = 0; i < 50; i++) {
+        	colunas[i].pipe_x = pipe_x;
+        	colunas[i].score = false;
+        	colunas[i].altura_pipeteto = (int)((rand() / (double)RAND_MAX) * (300 - 170) + 170);
+        	colunas[i].altura_pipechão = (int)((rand() / (double)RAND_MAX) * (200 - 150) + 150);
+   
+		pipe_x += 250;       
+	}
+
+}
+
+
+
+
 
 
 	int HITBOX_BONECO_X = BONECO.width * 0.5 * 0.75; //LARGURA * ESCALA * METAD
@@ -243,7 +262,7 @@ void main () {
 		int NEXTPIPE = -1;
 
 		
-		if (GAME_OVER == false && GAME_MODE == false) {
+		if (GAME_OVER == false) {
 
 			MOV_Y += GRAVITY;
 			POS_INICIAL_Y += MOV_Y;
@@ -253,13 +272,7 @@ void main () {
 			POS_INICIAL_X += MOV_X;
 
 
-/*
-			SCROLL_IMAGEMFUNDO -= 1.0f;
-			if (SCROLL_IMAGEMFUNDO <= IMAGEMFUNDO.width) {
-				SCROLL_IMAGEMFUNDO = 0;
-			}
-*/			
-			Rectangle BONECOHITBOX = {
+		Rectangle BONECOHITBOX = {
                                 POS_INICIAL_X + (BONECO.width * 0.6 - HITBOX_BONECO_X) / 2,
                                 POS_INICIAL_Y + (BONECO.height * 0.55 - HITBOX_BONECO_Y) / 2,
                                 HITBOX_BONECO_X,
@@ -285,31 +298,24 @@ void main () {
 
 				if (COLISÃO_CIMA == true || COLISÃO_BAIXO == true) 
 				{
-					POS_INICIAL_Y = HEIGHT / 2;
-					POS_INICIAL_X = 100;
-					colunas[i].pipe_x = 0;
+					reset_game();
 				}
 					
 				
 				if (colunas[i].score == false && POS_INICIAL_X > colunas[i].pipe_x + 70) {
 					SCORE += 10;
 					colunas[i].score = true;
+					TARGET = 1;
 				}
 
 
 				if (GAME_OVER == false) {
 					colunas[i].pipe_x -= 2.5;
 					}
-
-				if (POS_INICIAL_Y > (HEIGHT - 50) || POS_INICIAL_Y <= 0) {
-
-		                        POS_INICIAL_Y = HEIGHT / 2;
-                		        POS_INICIAL_X = 100;
-                        		colunas[i].pipe_x = 0;
-               				}
-
-
-			
+		
+				}
+		
+				
 			if (NEXTPIPE != -1) {
 
                                 X_TO_NEXTPIPE = (colunas[NEXTPIPE].pipe_x + 70) - POS_INICIAL_X;
@@ -317,6 +323,14 @@ void main () {
                                 GAP_PIPE = HEIGHT - (colunas[NEXTPIPE].altura_pipeteto + colunas[NEXTPIPE].altura_pipeteto);
 
                                 }
+		
+
+			
+		
+		
+			
+					
+                        
 
 
 
@@ -329,10 +343,15 @@ void main () {
 			
 
 			double out = FORWARD_PROP_OUTPUT (&output, ex1, ex2, ex3, ex4, ex5);
-				
-			if (out > 0.5) {
+			
+			
+			int mov = (out > 0.5);
+
+			if (mov == 1 && AÇÃO == 0) {
 				MOV_Y = -8.8;
 			}
+
+			AÇÃO = mov;
 
 			double fim = BACK_PROP_OUTPUT(&output, TARGET);
 			
@@ -360,87 +379,49 @@ void main () {
 			output.final_bias -= TAXA_APRENDIZAGEM * output.delta;
 
 
-
-//printf ("%lf\n", fim);
-/*
-			if (fim > 0.5) {
+			}
 		
-				MOV_Y = -8.8;
-			}
-					
-*/				}
-			}
+			
+		
+			if (POS_INICIAL_Y > (HEIGHT - 50) || POS_INICIAL_Y <= 0) {
+
+                                reset_game();
+                                }
 
 		
 			
 		
 		
-/*
 
-		if (POS_INICIAL_Y > (HEIGHT - 50) || POS_INICIAL_Y <= 0) {
-
-			POS_INICIAL_Y = HEIGHT / 2;
-			POS_INICIAL_X = 100;
-			colunas[i].pipe_x = 0;
-		}
-
-*/
 
 
 		BeginDrawing();
 		ClearBackground(SKYBLUE);
 
 
-	//	DrawTextureV (IMAGEMFUNDO, (Vector2) {0, 0}, WHITE);
-	//	DrawTextureV (IMAGEMFUNDO, (Vector2) {0 - SCROLL_IMAGEMFUNDO, 0 }, WHITE);
-
-
 		DrawTextureEx(BONECO, (Vector2) {POS_INICIAL_X, POS_INICIAL_Y}, 0, 0.5,  WHITE);
 	
-		DrawText(TextFormat("POS_INICIAL_Y NORMALIZADA = %lf", POS_INICIAL_Y / HEIGHT), 10, 160, 15, BLACK);
-		DrawText(TextFormat("X_TO_NEXTPIPE NORMALIZADO = %lf", X_TO_NEXTPIPE / 900.0), 10, 200, 15, BLACK);
-		DrawText(TextFormat("GAP_PIPE NORMALIZADO = %lf", (GAP_PIPE - 150) / 150.0), 10, 240, 15, BLACK);
-
+		
 
 		for (int i = 0; i < 50; i++) {
-			
-			DrawText(TextFormat("X_TO_NEXTPIPE = %d", X_TO_NEXTPIPE), 10, 40, 15, BLACK);
-                        DrawText(TextFormat("PIPE_GAP = %d", GAP_PIPE), 10, 80, 15, BLACK);
-                        DrawText(TextFormat("NEXTPIPE = %d", NEXTPIPE), 10, 120, 15, BLACK);
-
-	
+				
 			DrawRectangle (colunas[i].pipe_x, 0, 70, colunas[i].altura_pipeteto, GREEN);
 			DrawRectangle (colunas[i].pipe_x + 2, (HEIGHT - colunas[i].altura_pipechão), 70, colunas[i].altura_pipechão, GREEN);
 		}
 
-/*
-		if (GAME_MODE == false) {
-			DrawText("CLICK IN SPACE BAR", WIDTH / 4, HEIGHT / 2, 30, RED);
-	      		}
-		if (IsKeyPressed(KEY_SPACE)) {
-                	GAME_MODE = true;
-       			}
-		
-*/		
-		if (GAME_MODE == false) {
+		if (GAME_OVER == false) {
 
-		
+			DrawText(TextFormat("EPOCH = %i", EPOCH), 10, 30, 20, BLACK);
 			DrawText(TextFormat("SCORE: %i", SCORE), 10, 10, 20, BLACK);
 			DrawText(TextFormat("FPS: %i", GetFPS()), WIDTH - 90, 10, 20, BLACK);
+			DrawText(TextFormat("RECORD: %i", NEW_RECORD), 10, 50, 20, BLACK);
 		}	
 
-		if (GAME_OVER == true) {
-			
-			
-			DrawText(TextFormat("GAME OVER"), WIDTH / 8.5, HEIGHT / 4, 80, RED);
-			DrawText(TextFormat("SCORE: %i", SCORE), WIDTH / 2.8, HEIGHT / 1.9, 40, RED);
-			
-		}
+	
 
 		EndDrawing();
 	}
 
-//		UnloadTexture(IMAGEMFUNDO);
 		UnloadTexture(BONECO);
 		CloseWindow();
 
