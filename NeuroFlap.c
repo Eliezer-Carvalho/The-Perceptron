@@ -287,6 +287,7 @@ void main () {
 				{
 					POS_INICIAL_Y = HEIGHT / 2;
 					POS_INICIAL_X = 100;
+					colunas[i].pipe_x = 0;
 				}
 					
 				
@@ -299,6 +300,15 @@ void main () {
 				if (GAME_OVER == false) {
 					colunas[i].pipe_x -= 2.5;
 					}
+
+				if (POS_INICIAL_Y > (HEIGHT - 50) || POS_INICIAL_Y <= 0) {
+
+		                        POS_INICIAL_Y = HEIGHT / 2;
+                		        POS_INICIAL_X = 100;
+                        		colunas[i].pipe_x = 0;
+               				}
+
+
 			
 			if (NEXTPIPE != -1) {
 
@@ -344,9 +354,8 @@ void main () {
 				}
 
 
-
 			for (int i = 0; i < 5; i++) {
-			    output.final_weights[i] -= TAXA_APRENDIZAGEM  * output.delta * output.sigmoid_output;
+			    output.final_weights[i] -= TAXA_APRENDIZAGEM  * output.delta * neurónio_hidden_layer[i].sigmoid;
 				}
 			output.final_bias -= TAXA_APRENDIZAGEM * output.delta;
 
@@ -366,15 +375,16 @@ void main () {
 			
 		
 		
-
+/*
 
 		if (POS_INICIAL_Y > (HEIGHT - 50) || POS_INICIAL_Y <= 0) {
 
 			POS_INICIAL_Y = HEIGHT / 2;
 			POS_INICIAL_X = 100;
+			colunas[i].pipe_x = 0;
 		}
 
-
+*/
 
 
 		BeginDrawing();
