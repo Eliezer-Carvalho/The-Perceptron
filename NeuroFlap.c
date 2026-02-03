@@ -28,6 +28,7 @@ int X_TO_NEXTPIPE = 0;
 int GAP_PIPE = 0;
 
 double TARGET = 1;
+double TAXA_APRENDIZAGEM = 0.1;
 
 struct pipes {
 	float pipe_x;
@@ -132,7 +133,7 @@ double FORWARD_PROP (NEURÓNIO* neurónio, double INPUT1, double INPUT2, double 
 }
 
 
-void FORWARD_PROP_OUTPUT (OUTPUT *x, double a, double b, double c, double d, double e) {
+double FORWARD_PROP_OUTPUT (OUTPUT *x, double a, double b, double c, double d, double e) {
 
 	x -> final_soma = a * x -> final_weights[0] + 
 	       		    b * x -> final_weights[1] +
@@ -141,6 +142,9 @@ void FORWARD_PROP_OUTPUT (OUTPUT *x, double a, double b, double c, double d, dou
 			    e * x -> final_weights[4] +
 			    x -> final_bias;
 
+	x -> sigmoid_output = FUNÇÃO_SIGMOID (x -> final_soma);
+
+	return x -> sigmoid_output;
 }
 
 
@@ -281,7 +285,8 @@ void main () {
 
 				if (COLISÃO_CIMA == true || COLISÃO_BAIXO == true) 
 				{
-					GAME_OVER = true;
+					POS_INICIAL_Y = HEIGHT / 2;
+					POS_INICIAL_X = 100;
 				}
 					
 				
@@ -303,6 +308,9 @@ void main () {
 
                                 }
 
+
+
+
 			double ex1 = FORWARD_PROP (&neurónio_hidden_layer[0], (double)POS_INICIAL_Y / (double)HEIGHT, (double) X_TO_NEXTPIPE / (double)WIDTH, ((double)GAP_PIPE - 150) / 150 );
 			double ex2 = FORWARD_PROP (&neurónio_hidden_layer[1], (double)POS_INICIAL_Y / (double)HEIGHT, (double) X_TO_NEXTPIPE / (double)WIDTH, ((double)GAP_PIPE - 150) / 150 );
 			double ex3 = FORWARD_PROP (&neurónio_hidden_layer[2], (double)POS_INICIAL_Y / (double)HEIGHT, (double) X_TO_NEXTPIPE / (double)WIDTH, ((double)GAP_PIPE - 150) / 150 );
@@ -310,14 +318,37 @@ void main () {
 			double ex5 = FORWARD_PROP (&neurónio_hidden_layer[4], (double)POS_INICIAL_Y / (double)HEIGHT, (double) X_TO_NEXTPIPE / (double)WIDTH, ((double)GAP_PIPE - 150) / 150 );
 			
 
+			double out = FORWARD_PROP_OUTPUT (&output, ex1, ex2, ex3, ex4, ex5);
+				
+			if (out > 0.5) {
+				MOV_Y = -8.8;
+			}
+
 			double fim = BACK_PROP_OUTPUT(&output, TARGET);
 			
-			    for (int i = 0; i < 5; i++) {
+			for (int i = 0; i < 5; i++) {
 
 		                double teste = DELTA_NEURÓNIO_HIDDEN_LAYER (&neurónio_hidden_layer [i], output.final_weights[i], output.delta);
 	
-        		        printf ("%lf\n", teste);
+        		 
        				 }
+
+		
+			double inputs[3] = {POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH, (GAP_PIPE - 150)/150};
+
+			for (int i = 0; i < 5; i++) {
+    				for (int j = 0; j < 3; j++) {
+        				neurónio_hidden_layer[i].weights[j] -= TAXA_APRENDIZAGEM * neurónio_hidden_layer[i].delta * inputs[j];
+    					}
+    				neurónio_hidden_layer[i].bias -= TAXA_APRENDIZAGEM * neurónio_hidden_layer[i].delta;
+				}
+
+
+
+			for (int i = 0; i < 5; i++) {
+			    output.final_weights[i] -= TAXA_APRENDIZAGEM  * output.delta * output.sigmoid_output;
+				}
+			output.final_bias -= TAXA_APRENDIZAGEM * output.delta;
 
 
 
@@ -339,7 +370,8 @@ void main () {
 
 		if (POS_INICIAL_Y > (HEIGHT - 50) || POS_INICIAL_Y <= 0) {
 
-			GAME_OVER = true;
+			POS_INICIAL_Y = HEIGHT / 2;
+			POS_INICIAL_X = 100;
 		}
 
 
