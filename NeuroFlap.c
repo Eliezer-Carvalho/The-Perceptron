@@ -27,8 +27,7 @@ int SCORE = 0;
 int X_TO_NEXTPIPE = 0;
 int GAP_PIPE = 0;
 
-//
-double erro = 0;
+double TARGET = 1;
 
 struct pipes {
 	float pipe_x;
@@ -61,7 +60,8 @@ typedef struct {
 	double final_soma;
 	
 	double sigmoid_output;
-	
+	double derivada_sigmoid_output;
+		
 	double delta;
 
 } OUTPUT;
@@ -125,14 +125,14 @@ double FORWARD_PROP (NEURÓNIO* neurónio, double INPUT1, double INPUT2, double 
 
 	neurónio -> sigmoid = FUNÇÃO_SIGMOID(neurónio -> soma);
 
-
+	neurónio -> derivada_sigmoid = DERIVADA_FUNÇÃO_SIGMOID (neurónio -> sigmoid);
 
 	return neurónio -> sigmoid;
 
 }
 
 
-double FORWARD_PROP_OUTPUT (OUTPUT *x, double a, double b, double c, double d, double e) {
+void FORWARD_PROP_OUTPUT (OUTPUT *x, double a, double b, double c, double d, double e) {
 
 	x -> final_soma = a * x -> final_weights[0] + 
 	       		    b * x -> final_weights[1] +
@@ -141,17 +141,29 @@ double FORWARD_PROP_OUTPUT (OUTPUT *x, double a, double b, double c, double d, d
 			    e * x -> final_weights[4] +
 			    x -> final_bias;
 
-
-	x -> sigmoid_output = FUNÇÃO_SIGMOID(x -> final_soma);
-
-	
-	x -> delta = x -> sigmoid_output - 1
-
-	return x -> sigmoid_output;	
-
 }
 
 
+double BACK_PROP_OUTPUT (OUTPUT *x, double TARGET) {
+
+	x -> sigmoid_output = FUNÇÃO_SIGMOID (x -> final_soma);
+	
+	x -> derivada_sigmoid_output = DERIVADA_FUNÇÃO_SIGMOID (x -> sigmoid_output);
+
+	x -> delta = (x -> sigmoid_output - TARGET) * x -> derivada_sigmoid_output;
+
+
+	return x -> delta;
+}
+
+
+double DELTA_NEURÓNIO_HIDDEN_LAYER (NEURÓNIO* neurónio, double peso_para_output, double delta) {
+
+	neurónio -> delta = neurónio -> derivada_sigmoid * peso_para_output * delta;
+	
+
+	return neurónio -> delta;
+}
 
 //---------------------------------------------
 void main () {
@@ -178,11 +190,16 @@ void main () {
 	output.final_bias = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
 	
 
+/*
 
+	for (int i = 0; i < 5; i++) {
 
+		double teste = DELTA_NEURÓNIO_HIDDEN_LAYER (&neurónio_hidden_layer [i], output.final_weights[i], output.delta);
 
-
+		printf ("%lf\n", teste);
+	}
 	
+*/	
 	InitWindow(WIDTH, HEIGHT, "Flappy Bird");
 	SetTargetFPS(FPS);
 
@@ -293,16 +310,25 @@ void main () {
 			double ex5 = FORWARD_PROP (&neurónio_hidden_layer[4], (double)POS_INICIAL_Y / (double)HEIGHT, (double) X_TO_NEXTPIPE / (double)WIDTH, ((double)GAP_PIPE - 150) / 150 );
 			
 
-			double fim = FORWARD_PROP_OUTPUT(&output, ex1, ex2, ex3, ex4, ex5);
+			double fim = BACK_PROP_OUTPUT(&output, TARGET);
+			
+			    for (int i = 0; i < 5; i++) {
 
-			printf ("%lf\n", fim);
+		                double teste = DELTA_NEURÓNIO_HIDDEN_LAYER (&neurónio_hidden_layer [i], output.final_weights[i], output.delta);
+	
+        		        printf ("%lf\n", teste);
+       				 }
 
+
+
+//printf ("%lf\n", fim);
+/*
 			if (fim > 0.5) {
 		
 				MOV_Y = -8.8;
 			}
 					
-				}
+*/				}
 			}
 
 		
