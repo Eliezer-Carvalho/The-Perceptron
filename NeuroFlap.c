@@ -30,7 +30,7 @@ static int AÇÃO = 0;
 int EPOCH = 0;
 int NEW_RECORD = 0;
 
-double TARGET = 0.55;
+double TARGET = 0.65;
 double TAXA_APRENDIZAGEM = 0.0001;
 
 struct pipes {
@@ -314,7 +314,7 @@ void main () {
 					}
 		
 				}
-		
+		}
 				
 			if (NEXTPIPE != -1) {
 
@@ -379,7 +379,7 @@ void main () {
 			output.final_bias -= TAXA_APRENDIZAGEM * output.delta;
 
 
-			}
+			
 		
 			
 		
@@ -415,7 +415,9 @@ void main () {
 			DrawText(TextFormat("SCORE: %i", SCORE), 10, 10, 20, BLACK);
 			DrawText(TextFormat("FPS: %i", GetFPS()), WIDTH - 90, 10, 20, BLACK);
 			DrawText(TextFormat("RECORD: %i", NEW_RECORD), 10, 50, 20, BLACK);
-		}	
+			DrawText(TextFormat("OUTPUT: %lf", out), 10, 70, 20, BLACK);
+		}
+
 
 	
 
