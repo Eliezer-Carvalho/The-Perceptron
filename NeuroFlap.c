@@ -30,8 +30,8 @@ static int AÇÃO = 0;
 int EPOCH = 0;
 int NEW_RECORD = 0;
 
-double TARGET = 0.65;
-double TAXA_APRENDIZAGEM = 0.0001;
+double TARGET = 0.8;
+double TAXA_APRENDIZAGEM = 0.005;
 
 struct pipes {
 	float pipe_x;
