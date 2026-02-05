@@ -8,18 +8,16 @@
 #define HEIGHT 600
 #define FPS 60
 #define GRAVITY 0.5
-
+#define POPULAÇÃO = 200
 
 float MOV_X = 0;
-float MOV_Y = 0.5;
+float SCROLL_IMAGEMFUNDO = 0.0f;
 float POS_INICIAL_X = 150;
 float POS_INICIAL_Y = HEIGHT / 2;
-float SCROLL_IMAGEMFUNDO = 0.0f;
-
 
 bool COLISÃO_CIMA = false;
 bool COLISÃO_BAIXO = false;
-bool GAME_OVER = false;
+bool GAME = true;
 bool AG_MODE = true;
 
 int SCORE = 0;
@@ -28,8 +26,10 @@ int X_TO_NEXTPIPE_DOWN = 0;
 int GAP_PIPE = 0;
 
 
+
 double bias_output = 0;
 double soma_hidden_layer = 0;
+double FITNESS_SCORE = 0;
 
 struct pipes {
 	float pipe_x;
@@ -58,7 +58,12 @@ typedef struct {
 	
 	double genes[26]; //pesos e bias
 	double fitness; //Capacidade do mesmo - Distância percorrida
+	
+	float MOV_Y;
+	float POS_y = HEIGHT / 2;
+	float POS_x = 150;
 
+	bool VIVO = true;
 
 } INDIVÍDUO;
 
@@ -83,23 +88,26 @@ double FUNÇÃO_SIGMOID (double x) {
 }
 
 
-double REDE (double INPUT1, double INPUT2, double INPUT3, REDE_NEURAL neurónio[5]) {
+double REDE (double INPUT1_NORMALIZADO, double INPUT2_NORMALIZADO, double INPUT3_NORMALIZADO, REDE_NEURAL neurónio[5], INDIVÍDUO indivíduo[INDIVÍDUO_ATUAL]) {
 
-	
-	for (int i = 0; i < 3; i++) {
+	int genes_indice = 0;
 
-		neurónio[0].weights[i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
-		neurónio[1].weights[i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
-		neurónio[2].weights[i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
-		neurónio[3].weights[i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
-		neurónio[4].weights[i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;	
-		
-		for (int j = 0; j < 5; j++) {
-
-			neurónio[j].bias = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
-
-			neurónio[j].weights_neurónios = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 3; j++) {
+			
+			double val_random = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+			neurónio[i].weights[j] = val_random;
+			indivíduo[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random;
 		}
+
+			double val_random_2 = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+			neurónio[i].bias = val_random_2;
+			indivíduo[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random_2;
+
+			double val_random_3 = ((double)rand() / RAND_MAX) * 2.0 - 1.0;	
+			neurónio[i].weights_neurónios = val_random_3;
+			indivíduo[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random_3;
+		
 	}
 	
 	
@@ -132,39 +140,27 @@ double REDE (double INPUT1, double INPUT2, double INPUT3, REDE_NEURAL neurónio[
 
 	
 	
-	
-/*
-
-double FORWARD_PROP (NEURÓNIO* neurónio, double INPUT1, double INPUT2, double INPUT3) {
-
-	neurónio -> soma = INPUT1 * neurónio -> weights[0] +
-	       		   INPUT2 * neurónio -> weights[1] + 
-		    	   INPUT3 * neurónio -> weights[2] +
-	       		   neurónio -> bias;
-
-	neurónio -> sigmoid = FUNÇÃO_SIGMOID(neurónio -> soma);
+void RESET_JOGO () {
 
 
-	return neurónio -> sigmoid;
+	SCORE = 0;
+	POS_INICIAL_X = 150;
+	POS_INICIAL_Y = HEIGHT / 2;
+
+
+
+
+
+	for (int i = 0; i < 50; i++) {
+
+		colunas[i].pipe_x = 0;
+	}
+
+
+
 
 }
 
-
-double FORWARD_PROP_OUTPUT (OUTPUT *x, double a, double b, double c, double d, double e) {
-
-	x -> final_soma = a * x -> final_weights[0] + 
-	       		    b * x -> final_weights[1] +
-		    	    c * x -> final_weights[2] +
-			    d * x -> final_weights[3] +
-			    e * x -> final_weights[4] +
-			    x -> final_bias;
-
-	x -> sigmoid_output = FUNÇÃO_SIGMOID (x -> final_soma);
-
-	return x -> sigmoid_output;
-}
-*/
-//---------------------------------------------
 void main () {
 
 	srand(time(NULL));
@@ -203,114 +199,100 @@ void main () {
 
 	
 	REDE_NEURAL neurónio [5];
-
+	INDIVÍDUO indivíduo_atual [200];
 
 	while (!WindowShouldClose()) {
 	
 		int NEXTPIPE = -1;
 
+                              
+
+		for (int i = 0; i < POPULAÇÃO; i++) {
 		
-		if (GAME_OVER == false) {
-
-
-
 			
-			MOV_Y += GRAVITY;
-			POS_INICIAL_Y += MOV_Y;
-
+		if (indivíduo_atual[i].VIVO == true) {
 					
-				
-			POS_INICIAL_X += MOV_X;
+			REDE (indivíduo_atual[i].POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE_UP / WIDTH, X_TO_NEXTPIPE_DOWN / WIDTH, neurónio, indivíduo_atual[i]);
+					
+			FITNESS_SCORE +=;
 
+
+			indivíduo_atual[i].MOV_Y += GRAVITY;
+		        indivíduo_atual[i].POS_y += indivíduo_atual[i].MOV_Y;
+
+        		  //      POS_INICIAL_X += MOV_X;
 
 			Rectangle BONECOHITBOX = {
-                                POS_INICIAL_X + (BONECO.width * 0.6 - HITBOX_BONECO_X) / 2,
-                                POS_INICIAL_Y + (BONECO.height * 0.55 - HITBOX_BONECO_Y) / 2,
+                                indivíduo_atual[i].POS_x + (BONECO.width * 0.6 - HITBOX_BONECO_X) / 2,
+                                indivíduo_atual[i].POS_y + (BONECO.height * 0.55 - HITBOX_BONECO_Y) / 2,
                                 HITBOX_BONECO_X,
                                 HITBOX_BONECO_Y
                         };
-       		
-
-			for (int i = 0; i < 50; i++) {
-
-	
-				Rectangle PIPECIMA = {colunas[i].pipe_x, 0, 70, colunas[i].altura_pipeteto};
-				Rectangle PIPEBAIXO = {colunas[i].pipe_x + 2, (HEIGHT - colunas[i].altura_pipechão), 70, colunas[i].altura_pipechão};
-				
-				
-				COLISÃO_CIMA = CheckCollisionRecs (BONECOHITBOX, PIPECIMA);
-				COLISÃO_BAIXO = CheckCollisionRecs (BONECOHITBOX, PIPEBAIXO);
 
 
-				if (colunas[i].pipe_x + 70 >= POS_INICIAL_X && NEXTPIPE == -1) { //Enquanto o Boneco tiver atrás do Pipe, o NEXTPIPE vai ser sempre o mesmo índice, só reseta quando for maior que a POS_INICIAL_X
+                        for (int j = 0; j < 50; j++) {
+
+
+                                Rectangle PIPECIMA = {colunas[j].pipe_x, 0, 70, colunas[j].altura_pipeteto};
+                                Rectangle PIPEBAIXO = {colunas[j].pipe_x + 2, (HEIGHT - colunas[j].altura_pipechão), 70, colunas[j].altura_pipechão};
+
+
+                                COLISÃO_CIMA = CheckCollisionRecs (BONECOHITBOX, PIPECIMA);
+                                COLISÃO_BAIXO = CheckCollisionRecs (BONECOHITBOX, PIPEBAIXO);
+
+
+                                if (colunas[j].pipe_x + 70 >= POS_INICIAL_X && NEXTPIPE == -1) { //Enquanto o Boneco tiver atrás do Pipe, o NEXTPIPE vai ser sempre o mesmo índice, só reseta quando for maior que a POS_INICIAL_X
                                         NEXTPIPE = i;
                                 }
-				
-
-				if (COLISÃO_CIMA == true || COLISÃO_BAIXO == true) 
-				{
-				
-					GAME_OVER = true;
-
-				}
-					
-				
-				if (colunas[i].score == false && POS_INICIAL_X > colunas[i].pipe_x + 70) {
-					SCORE += 10;
-					colunas[i].score = true;	
-				}
 
 
-				if (GAME_OVER == false) {
-					colunas[i].pipe_x -= 2.5;
-				}
-		
-			}
-				
-		if (NEXTPIPE != -1) {
+                                if (COLISÃO_CIMA == true || COLISÃO_BAIXO == true)
+                               	{
 
-                	X_TO_NEXTPIPE_UP  = (colunas[NEXTPIPE].pipe_x + 70) - POS_INICIAL_X;
+					indivíduo_atual[i].VIVO = false;
+					indivíduo_atual[i].fitness = FITNESS_SCORE;
+					break;
 
-			X_TO_NEXTPIPE_DOWN = (colunas[NEXTPIPE].pipe_x + 70) - POS_INICIAL_X;
+
+                              	}
+
+
+                                if (colunas[j].score == false && POS_INICIAL_X > colunas[i].pipe_x + 70) {
+                                        SCORE += 10;
+                                        colunas[j].score = true;
+                               	}
+
+
+                                if (GAME) {
+                                        colunas[j].pipe_x -= 2.5;
+					indivíduo_atual[i].fitness = FITNESS_SCORE;
+
+                               	}
+
+                       	}
+
+                if (NEXTPIPE != -1) {
+
+                        X_TO_NEXTPIPE_UP  = (colunas[NEXTPIPE].pipe_x + 70) - POS_INICIAL_X;
+
+                        X_TO_NEXTPIPE_DOWN = (colunas[NEXTPIPE].pipe_x + 70) - POS_INICIAL_X;
 
                         GAP_PIPE = HEIGHT - (colunas[NEXTPIPE].altura_pipeteto + colunas[NEXTPIPE].altura_pipechão);
 
-			}
-
 		}
+
 			
-		
-			if (POS_INICIAL_Y > (HEIGHT - 50) || POS_INICIAL_Y <= 0) {
+
+
+                if (POS_INICIAL_Y > (HEIGHT - 50) || POS_INICIAL_Y <= 0) {
+
+			indivíduo_atual[i].VIVO = false;
+			indivíduo_atual[i].fitness = FITNESS_SCORE;
+		        break;	
+                }
+
 					
-					GAME_OVER = true;
-                               }
-
-		
-			
-		
-			if (GAME_OVER == false && AG_MODE == true) {
-
-
-				REDE (POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE_UP / WIDTH, X_TO_NEXTPIPE_DOWN / WIDTH, neurónio);
-	
-/*				for (int i = 0; i < 5; i++) {
-					
-					printf("%lf || %lf || %lf\n", neurónio[i].weights[0], neurónio[i].weights[1], neurónio[i].weights[2]);
-					printf("%lf\n", neurónio[i].bias);
-					printf("%lf\n", neurónio[i].soma);
-					printf("%lf\n", neurónio[i].sigmoid);
-
-					printf("%lf\n\n", neurónio[i].weights_neurónios); 
-				}
-
-				printf("%lf\n", bias_output);
-				printf("%lf\n", soma_hidden_layer);
-				printf("%lf\n", sigmoid_output);
-
-				AG_MODE = false;
-*/
-			}		
-
+	}
 
 
 		BeginDrawing();
