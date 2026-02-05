@@ -8,7 +8,7 @@
 #define HEIGHT 600
 #define FPS 60
 #define GRAVITY 0.5
-
+#define POPULAÇÃO 200
 
 float MOV_X = 0;
 float MOV_Y = 0.5;
@@ -21,17 +21,15 @@ bool COLISÃO_CIMA = false;
 bool COLISÃO_BAIXO = false;
 bool GAME_OVER = false;
 bool GAME_MODE = false;
-bool REDE_MODE = true;
 
 int SCORE = 0;
-int X_TO_NEXTPIPE = 0;
+int X_TO_NEXTPIPE_UP = 0;
+int X_TO_NEXTPIPE_DOWN = 0;
 int GAP_PIPE = 0;
-static int AÇÃO = 0;
-int EPOCH = 0;
-int NEW_RECORD = 0;
+int POPULAÇÃO = 200;
 
-double TARGET = 0.8;
-double TAXA_APRENDIZAGEM = 0.005;
+static int AÇÃO = 0;
+
 
 struct pipes {
 	float pipe_x;
@@ -50,36 +48,42 @@ typedef struct {
 
 	double soma;
 	double sigmoid;
-	double derivada_sigmoid;
 
-	double delta;
 
 } NEURÓNIO;
 
 
 typedef struct {
-
-	double final_weights [5];
-	double final_bias;
-	double final_soma;
 	
-	double sigmoid_output;
-	double derivada_sigmoid_output;
-		
-	double delta;
-
-} OUTPUT;
-
-
-void GERAÇÃO_PESOS_ALEATÓRIOS (NEURÓNIO* neurónio) {
+	double weights [5];
+	double bias;
+	
+	double soma;
+	double sigmoid;
 
 
-	for (int i = 0; i < 3; i++) {
+} HIDDEN_LAYER;
 
-		neurónio -> weights [i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+
+typedef struct {
+	
+	double genes[26]; //pesos e bias
+	double fitness; //Capacidade do mesmo - Distância percorrida
+
+
+} TESTE;
+
+
+
+
+
+void GERAÇÃO_PESOS_ALEATÓRIOS (double weights [], int NÚMERO_WEIGHTS) {
+
+
+	for (int i = 0; i < NÚMERO_WEIGHTS; i++) {
+
+		weights [i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
 	}
-
-	neurónio -> bias = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
 
 }
 
@@ -94,13 +98,60 @@ double FUNÇÃO_SIGMOID (double x) {
 	return (sigfunc);		
 }
 
-double DERIVADA_FUNÇÃO_SIGMOID (double y) {
 
-	double derivada = y * (1 - y);
+double REDE_NEURAL (double INPUT1, double INPUT2, double INPUT3, NEURÓNIO neurónio[5], HIDDEN_LAYER* hl) {
 
-	return (derivada);
+	//Camada Oculta com 5 Neurónios na Hidden Layer || Cada Neurónio tem inicialmente 3 pesos porque temos 3 inputs.
+	for (int i = 0; i < 5; i++) {
+		neurónio[i].soma = INPUT1 * neurónio[i].weights[0] +
+			   INPUT2 * neurónio[i].weights[1] +
+			   INPUT3 * neurónio[i].weights[2] +
+			   neurónio[i].bias;
+	//Cálculo do Sigmoid que é o output que vai para o Neurónio Final
+		neurónio[i].sigmoid = FUNÇÃO_SIGMOID (neurónio[i].soma);
+	}
+
+
+	//Por cada resultado Sigmoid multiplicamos por um novo peso e somamos um bias novo também
+	hl -> soma = neurónio [0].sigmoid * hl -> weights [0] +
+		     neurónio [1].sigmoid * hl -> weights [1] +
+		     neurónio [2].sigmoid * hl -> weights [2] +
+		     neurónio [3].sigmoid * hl -> weights [3] +
+		     neurónio [4].sigmoid * hl -> weights [4] +
+		     hl -> bias;
+
+	//O resultado da Função Sigmoid da soma dos Sigmoids dos 5 Neurónio Escondidos é a decisão final. Se > 0.5 salta.
+	hl -> sigmoid = FUNÇÃO_SIGMOID (hl -> soma);
+	
+	return hl -> sigmoid;
+
 }
 
+double INICIAR_TESTE(double INPUT1, double INPUT2, double INPUT3, TESTE* individuo, NEURONIO* neuronio, HIDDEN_LAYER* hl) {
+
+
+    	for (int i = 0; i < 5; i++) {
+        	neuronio[i].weights[0] = individuo->genes[i*3 + 0];
+        	neuronio[i].weights[1] = individuo->genes[i*3 + 1];
+        	neuronio[i].weights[2] = individuo->genes[i*3 + 2];
+        	neuronio[i].bias      = individuo->genes[15 + i];
+   	 }
+
+    	for (int i = 0; i < 5; i++) {
+        	hl->weights[i] = individuo->genes[20 + i];
+   	 }
+    	hl->bias = individuo->genes[25];
+
+   
+    	double out = REDE_NEURAL(INPUT1, INPUT2, INPUT3, neuronio, hl);
+
+    
+    	individuo->fitness += 1;
+
+    	return out;
+}
+
+/*
 
 double FORWARD_PROP (NEURÓNIO* neurónio, double INPUT1, double INPUT2, double INPUT3) {
 
@@ -111,7 +162,6 @@ double FORWARD_PROP (NEURÓNIO* neurónio, double INPUT1, double INPUT2, double 
 
 	neurónio -> sigmoid = FUNÇÃO_SIGMOID(neurónio -> soma);
 
-	neurónio -> derivada_sigmoid = DERIVADA_FUNÇÃO_SIGMOID (neurónio -> sigmoid);
 
 	return neurónio -> sigmoid;
 
@@ -131,64 +181,34 @@ double FORWARD_PROP_OUTPUT (OUTPUT *x, double a, double b, double c, double d, d
 
 	return x -> sigmoid_output;
 }
-
-
-double BACK_PROP_OUTPUT (OUTPUT *x, double TARGET) {
-
-	x -> sigmoid_output = FUNÇÃO_SIGMOID (x -> final_soma);
-	
-	x -> derivada_sigmoid_output = DERIVADA_FUNÇÃO_SIGMOID (x -> sigmoid_output);
-
-	x -> delta = (x -> sigmoid_output - TARGET) * x -> derivada_sigmoid_output;
-
-
-	return x -> delta;
-}
-
-
-double DELTA_NEURÓNIO_HIDDEN_LAYER (NEURÓNIO* neurónio, double peso_para_output, double delta) {
-
-	neurónio -> delta = neurónio -> derivada_sigmoid * peso_para_output * delta;
-	
-
-	return neurónio -> delta;
-}
-
+*/
 //---------------------------------------------
 void main () {
 
 	srand(time(NULL));
 	
-	NEURÓNIO neurónio_hidden_layer [5];
+	NEURÓNIO neurónio[5];
 
 	for (int i = 0; i < 5; i++) {
 		
-		GERAÇÃO_PESOS_ALEATÓRIOS (&neurónio_hidden_layer[i]);
-
-	}
-
-
-
-
-	OUTPUT output;
-	for (int i = 0; i < 5; i++) {
-		
-		output.final_weights [i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
-	}
-
-	output.final_bias = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
-	
-
-/*
-
-	for (int i = 0; i < 5; i++) {
-
-		double teste = DELTA_NEURÓNIO_HIDDEN_LAYER (&neurónio_hidden_layer [i], output.final_weights[i], output.delta);
-
-		printf ("%lf\n", teste);
+		GERAÇÃO_PESOS_ALEATÓRIOS (neurónio[i].weights, 3);
+		neurónio[i].bias = ((double)rand() / RAND_MAX) * 2.0 - 1.0; 
 	}
 	
-*/	
+
+
+
+
+	HIDDEN_LAYER hl;
+
+	GERAÇÃO_PESOS_ALEATÓRIOS (hl.weights, 5);
+	
+	hl.bias = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+
+
+
+
+
 	InitWindow(WIDTH, HEIGHT, "Flappy Bird");
 	SetTargetFPS(FPS);
 
@@ -217,39 +237,6 @@ void main () {
 	}
 
 	
-	void reset_game () {
-
-        POS_INICIAL_Y = HEIGHT / 2;
-        POS_INICIAL_X = 100;
-        MOV_Y = 0;
-
-	EPOCH += 1;
-        AÇÃO = 0;
-        GAME_OVER = false;
-
-	if (SCORE > NEW_RECORD) {
-		SCORE = NEW_RECORD;
-	}
-
-	SCORE = 0;
-	TARGET = 0;
-
-	float pipe_x = 640;
-
-	for (int i = 0; i < 50; i++) {
-        	colunas[i].pipe_x = pipe_x;
-        	colunas[i].score = false;
-        	colunas[i].altura_pipeteto = (int)((rand() / (double)RAND_MAX) * (300 - 170) + 170);
-        	colunas[i].altura_pipechão = (int)((rand() / (double)RAND_MAX) * (200 - 150) + 150);
-   
-		pipe_x += 250;       
-	}
-
-}
-
-
-
-
 
 
 	int HITBOX_BONECO_X = BONECO.width * 0.5 * 0.75; //LARGURA * ESCALA * METAD
@@ -264,6 +251,14 @@ void main () {
 		
 		if (GAME_OVER == false) {
 
+
+			for (int i = 0; i < POPULAÇÃO; i++) {
+				
+				double out = INICIAR_TESTE(INPUT1, INPUT2, INPUT3, &populacao[i], neuronio, &hl);
+
+        			if (out > 0.5) saltar();
+	
+			
 			MOV_Y += GRAVITY;
 			POS_INICIAL_Y += MOV_Y;
 
@@ -298,14 +293,18 @@ void main () {
 
 				if (COLISÃO_CIMA == true || COLISÃO_BAIXO == true) 
 				{
-					reset_game();
+				
+					GAME_OVER = true;
+
 				}
 					
 				
 				if (colunas[i].score == false && POS_INICIAL_X > colunas[i].pipe_x + 70) {
 					SCORE += 10;
 					colunas[i].score = true;
-					TARGET = 1;
+				
+				
+				
 				}
 
 
@@ -318,33 +317,19 @@ void main () {
 				
 			if (NEXTPIPE != -1) {
 
-                                X_TO_NEXTPIPE = (colunas[NEXTPIPE].pipe_x + 70) - POS_INICIAL_X;
+                                X_TO_NEXTPIPE_UP  = (colunas[NEXTPIPE].pipe_x + 70) - POS_INICIAL_X;
 
-                                GAP_PIPE = HEIGHT - (colunas[NEXTPIPE].altura_pipeteto + colunas[NEXTPIPE].altura_pipeteto);
+				X_TO_NEXTPIPE_DOWN = (colunas[NEXTPIPE].pipe_x + 70) - POS_INICIAL_X;
 
-                                }
-		
+                                GAP_PIPE = HEIGHT - (colunas[NEXTPIPE].altura_pipeteto + colunas[NEXTPIPE].altura_pipechão);
+
+			}
 
 			
-		
-		
-			
-					
-                        
-
-
-
-
-			double ex1 = FORWARD_PROP (&neurónio_hidden_layer[0], (double)POS_INICIAL_Y / (double)HEIGHT, (double) X_TO_NEXTPIPE / (double)WIDTH, ((double)GAP_PIPE - 150) / 150 );
-			double ex2 = FORWARD_PROP (&neurónio_hidden_layer[1], (double)POS_INICIAL_Y / (double)HEIGHT, (double) X_TO_NEXTPIPE / (double)WIDTH, ((double)GAP_PIPE - 150) / 150 );
-			double ex3 = FORWARD_PROP (&neurónio_hidden_layer[2], (double)POS_INICIAL_Y / (double)HEIGHT, (double) X_TO_NEXTPIPE / (double)WIDTH, ((double)GAP_PIPE - 150) / 150 );
-			double ex4 = FORWARD_PROP (&neurónio_hidden_layer[3], (double)POS_INICIAL_Y / (double)HEIGHT, (double) X_TO_NEXTPIPE / (double)WIDTH, ((double)GAP_PIPE - 150) / 150 );
-			double ex5 = FORWARD_PROP (&neurónio_hidden_layer[4], (double)POS_INICIAL_Y / (double)HEIGHT, (double) X_TO_NEXTPIPE / (double)WIDTH, ((double)GAP_PIPE - 150) / 150 );
-			
-
-			double out = FORWARD_PROP_OUTPUT (&output, ex1, ex2, ex3, ex4, ex5);
-			
-			
+/*
+			double out = REDE_NEURAL (X_TO_NEXTPIPE_UP / WIDTH, X_TO_NEXTPIPE_DOWN / WIDTH, (GAP_PIPE - 150) / 150, neurónio, &hl); 
+				
+				
 			int mov = (out > 0.5);
 
 			if (mov == 1 && AÇÃO == 0) {
@@ -353,40 +338,15 @@ void main () {
 
 			AÇÃO = mov;
 
-			double fim = BACK_PROP_OUTPUT(&output, TARGET);
-			
-			for (int i = 0; i < 5; i++) {
-
-		                double teste = DELTA_NEURÓNIO_HIDDEN_LAYER (&neurónio_hidden_layer [i], output.final_weights[i], output.delta);
-	
-        		 
-       				 }
-
-		
-			double inputs[3] = {POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE / WIDTH, (GAP_PIPE - 150)/150};
-
-			for (int i = 0; i < 5; i++) {
-    				for (int j = 0; j < 3; j++) {
-        				neurónio_hidden_layer[i].weights[j] -= TAXA_APRENDIZAGEM * neurónio_hidden_layer[i].delta * inputs[j];
-    					}
-    				neurónio_hidden_layer[i].bias -= TAXA_APRENDIZAGEM * neurónio_hidden_layer[i].delta;
-				}
-
-
-			for (int i = 0; i < 5; i++) {
-			    output.final_weights[i] -= TAXA_APRENDIZAGEM  * output.delta * neurónio_hidden_layer[i].sigmoid;
-				}
-			output.final_bias -= TAXA_APRENDIZAGEM * output.delta;
-
-
+*/		
 			
 		
 			
 		
 			if (POS_INICIAL_Y > (HEIGHT - 50) || POS_INICIAL_Y <= 0) {
-
-                                reset_game();
-                                }
+					
+					GAME_OVER = true;
+                               }
 
 		
 			
@@ -411,15 +371,11 @@ void main () {
 
 		if (GAME_OVER == false) {
 
-			DrawText(TextFormat("EPOCH = %i", EPOCH), 10, 30, 20, BLACK);
-			DrawText(TextFormat("SCORE: %i", SCORE), 10, 10, 20, BLACK);
+			DrawText(TextFormat("DISTÂNCIA_PIPE: %lf", (double) X_TO_NEXTPIPE_DOWN / (double) WIDTH), 10, 30, 20, BLACK);
 			DrawText(TextFormat("FPS: %i", GetFPS()), WIDTH - 90, 10, 20, BLACK);
-			DrawText(TextFormat("RECORD: %i", NEW_RECORD), 10, 50, 20, BLACK);
+			DrawText(TextFormat("GAP_PIPE = %lf", ((double) GAP_PIPE - 150) / 150), 10, 50, 20, BLACK);
 			DrawText(TextFormat("OUTPUT: %lf", out), 10, 70, 20, BLACK);
 		}
-
-
-	
 
 		EndDrawing();
 	}
