@@ -8,7 +8,7 @@
 #define HEIGHT 600
 #define FPS 60
 #define GRAVITY 0.5
-#define POPULAÇÃO 200
+
 
 float MOV_X = 0;
 float MOV_Y = 0.5;
@@ -20,16 +20,16 @@ float SCROLL_IMAGEMFUNDO = 0.0f;
 bool COLISÃO_CIMA = false;
 bool COLISÃO_BAIXO = false;
 bool GAME_OVER = false;
-bool GAME_MODE = false;
+bool AG_MODE = true;
 
 int SCORE = 0;
 int X_TO_NEXTPIPE_UP = 0;
 int X_TO_NEXTPIPE_DOWN = 0;
 int GAP_PIPE = 0;
-int POPULAÇÃO = 200;
 
-static int AÇÃO = 0;
 
+double bias_output = 0;
+double soma_hidden_layer = 0;
 
 struct pipes {
 	float pipe_x;
@@ -43,26 +43,15 @@ struct pipes {
 typedef struct {
 
 	double weights[3];
-
+	double weights_neurónios;
+	
 	double bias;
 
 	double soma;
+	
 	double sigmoid;
 
-
-} NEURÓNIO;
-
-
-typedef struct {
-	
-	double weights [5];
-	double bias;
-	
-	double soma;
-	double sigmoid;
-
-
-} HIDDEN_LAYER;
+} REDE_NEURAL;
 
 
 typedef struct {
@@ -71,10 +60,7 @@ typedef struct {
 	double fitness; //Capacidade do mesmo - Distância percorrida
 
 
-} TESTE;
-
-
-
+} INDIVÍDUO;
 
 
 void GERAÇÃO_PESOS_ALEATÓRIOS (double weights [], int NÚMERO_WEIGHTS) {
@@ -88,8 +74,6 @@ void GERAÇÃO_PESOS_ALEATÓRIOS (double weights [], int NÚMERO_WEIGHTS) {
 }
 
 
-
-
 double FUNÇÃO_SIGMOID (double x) {
 	
 	//return  x / (1 + fabs(x));
@@ -99,8 +83,26 @@ double FUNÇÃO_SIGMOID (double x) {
 }
 
 
-double REDE_NEURAL (double INPUT1, double INPUT2, double INPUT3, NEURÓNIO neurónio[5], HIDDEN_LAYER* hl) {
+double REDE (double INPUT1, double INPUT2, double INPUT3, REDE_NEURAL neurónio[5]) {
 
+	
+	for (int i = 0; i < 3; i++) {
+
+		neurónio[0].weights[i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+		neurónio[1].weights[i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+		neurónio[2].weights[i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+		neurónio[3].weights[i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+		neurónio[4].weights[i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;	
+		
+		for (int j = 0; j < 5; j++) {
+
+			neurónio[j].bias = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+
+			neurónio[j].weights_neurónios = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+		}
+	}
+	
+	
 	//Camada Oculta com 5 Neurónios na Hidden Layer || Cada Neurónio tem inicialmente 3 pesos porque temos 3 inputs.
 	for (int i = 0; i < 5; i++) {
 		neurónio[i].soma = INPUT1 * neurónio[i].weights[0] +
@@ -112,45 +114,25 @@ double REDE_NEURAL (double INPUT1, double INPUT2, double INPUT3, NEURÓNIO neur�
 	}
 
 
+	bias_output = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
 	//Por cada resultado Sigmoid multiplicamos por um novo peso e somamos um bias novo também
-	hl -> soma = neurónio [0].sigmoid * hl -> weights [0] +
-		     neurónio [1].sigmoid * hl -> weights [1] +
-		     neurónio [2].sigmoid * hl -> weights [2] +
-		     neurónio [3].sigmoid * hl -> weights [3] +
-		     neurónio [4].sigmoid * hl -> weights [4] +
-		     hl -> bias;
+	soma_hidden_layer = neurónio [0].sigmoid * neurónio[0].weights_neurónios +
+		     neurónio [1].sigmoid * neurónio[1].weights_neurónios +
+		     neurónio [2].sigmoid * neurónio[2].weights_neurónios +
+		     neurónio [3].sigmoid * neurónio[3].weights_neurónios +
+		     neurónio [4].sigmoid * neurónio[4].weights_neurónios +
+		     bias_output;
 
 	//O resultado da Função Sigmoid da soma dos Sigmoids dos 5 Neurónio Escondidos é a decisão final. Se > 0.5 salta.
-	hl -> sigmoid = FUNÇÃO_SIGMOID (hl -> soma);
+	double sigmoid_output = FUNÇÃO_SIGMOID (soma_hidden_layer);
 	
-	return hl -> sigmoid;
+	return sigmoid_output;
 
 }
 
-double INICIAR_TESTE(double INPUT1, double INPUT2, double INPUT3, TESTE* individuo, NEURONIO* neuronio, HIDDEN_LAYER* hl) {
-
-
-    	for (int i = 0; i < 5; i++) {
-        	neuronio[i].weights[0] = individuo->genes[i*3 + 0];
-        	neuronio[i].weights[1] = individuo->genes[i*3 + 1];
-        	neuronio[i].weights[2] = individuo->genes[i*3 + 2];
-        	neuronio[i].bias      = individuo->genes[15 + i];
-   	 }
-
-    	for (int i = 0; i < 5; i++) {
-        	hl->weights[i] = individuo->genes[20 + i];
-   	 }
-    	hl->bias = individuo->genes[25];
-
-   
-    	double out = REDE_NEURAL(INPUT1, INPUT2, INPUT3, neuronio, hl);
-
-    
-    	individuo->fitness += 1;
-
-    	return out;
-}
-
+	
+	
+	
 /*
 
 double FORWARD_PROP (NEURÓNIO* neurónio, double INPUT1, double INPUT2, double INPUT3) {
@@ -187,32 +169,9 @@ void main () {
 
 	srand(time(NULL));
 	
-	NEURÓNIO neurónio[5];
-
-	for (int i = 0; i < 5; i++) {
-		
-		GERAÇÃO_PESOS_ALEATÓRIOS (neurónio[i].weights, 3);
-		neurónio[i].bias = ((double)rand() / RAND_MAX) * 2.0 - 1.0; 
-	}
-	
-
-
-
-
-	HIDDEN_LAYER hl;
-
-	GERAÇÃO_PESOS_ALEATÓRIOS (hl.weights, 5);
-	
-	hl.bias = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
-
-
-
-
-
 	InitWindow(WIDTH, HEIGHT, "Flappy Bird");
 	SetTargetFPS(FPS);
 
-	//Texture2D IMAGEMFUNDO = LoadTexture("Background/Tropical mountains - Layer 1.png");
 	Texture2D BONECO = LoadTexture("Background/flappybird2.png");
 
 
@@ -243,6 +202,8 @@ void main () {
 	int HITBOX_BONECO_Y = BONECO.height * 0.5 * 0.71;
 
 	
+	REDE_NEURAL neurónio [5];
+
 
 	while (!WindowShouldClose()) {
 	
@@ -252,12 +213,7 @@ void main () {
 		if (GAME_OVER == false) {
 
 
-			for (int i = 0; i < POPULAÇÃO; i++) {
-				
-				double out = INICIAR_TESTE(INPUT1, INPUT2, INPUT3, &populacao[i], neuronio, &hl);
 
-        			if (out > 0.5) saltar();
-	
 			
 			MOV_Y += GRAVITY;
 			POS_INICIAL_Y += MOV_Y;
@@ -267,7 +223,7 @@ void main () {
 			POS_INICIAL_X += MOV_X;
 
 
-		Rectangle BONECOHITBOX = {
+			Rectangle BONECOHITBOX = {
                                 POS_INICIAL_X + (BONECO.width * 0.6 - HITBOX_BONECO_X) / 2,
                                 POS_INICIAL_Y + (BONECO.height * 0.55 - HITBOX_BONECO_Y) / 2,
                                 HITBOX_BONECO_X,
@@ -301,46 +257,27 @@ void main () {
 				
 				if (colunas[i].score == false && POS_INICIAL_X > colunas[i].pipe_x + 70) {
 					SCORE += 10;
-					colunas[i].score = true;
-				
-				
-				
+					colunas[i].score = true;	
 				}
 
 
 				if (GAME_OVER == false) {
 					colunas[i].pipe_x -= 2.5;
-					}
-		
 				}
-		}
-				
-			if (NEXTPIPE != -1) {
-
-                                X_TO_NEXTPIPE_UP  = (colunas[NEXTPIPE].pipe_x + 70) - POS_INICIAL_X;
-
-				X_TO_NEXTPIPE_DOWN = (colunas[NEXTPIPE].pipe_x + 70) - POS_INICIAL_X;
-
-                                GAP_PIPE = HEIGHT - (colunas[NEXTPIPE].altura_pipeteto + colunas[NEXTPIPE].altura_pipechão);
-
-			}
-
-			
-/*
-			double out = REDE_NEURAL (X_TO_NEXTPIPE_UP / WIDTH, X_TO_NEXTPIPE_DOWN / WIDTH, (GAP_PIPE - 150) / 150, neurónio, &hl); 
-				
-				
-			int mov = (out > 0.5);
-
-			if (mov == 1 && AÇÃO == 0) {
-				MOV_Y = -8.8;
-			}
-
-			AÇÃO = mov;
-
-*/		
-			
 		
+			}
+				
+		if (NEXTPIPE != -1) {
+
+                	X_TO_NEXTPIPE_UP  = (colunas[NEXTPIPE].pipe_x + 70) - POS_INICIAL_X;
+
+			X_TO_NEXTPIPE_DOWN = (colunas[NEXTPIPE].pipe_x + 70) - POS_INICIAL_X;
+
+                        GAP_PIPE = HEIGHT - (colunas[NEXTPIPE].altura_pipeteto + colunas[NEXTPIPE].altura_pipechão);
+
+			}
+
+		}
 			
 		
 			if (POS_INICIAL_Y > (HEIGHT - 50) || POS_INICIAL_Y <= 0) {
@@ -351,7 +288,28 @@ void main () {
 		
 			
 		
-		
+			if (GAME_OVER == false && AG_MODE == true) {
+
+
+				REDE (POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE_UP / WIDTH, X_TO_NEXTPIPE_DOWN / WIDTH, neurónio);
+	
+/*				for (int i = 0; i < 5; i++) {
+					
+					printf("%lf || %lf || %lf\n", neurónio[i].weights[0], neurónio[i].weights[1], neurónio[i].weights[2]);
+					printf("%lf\n", neurónio[i].bias);
+					printf("%lf\n", neurónio[i].soma);
+					printf("%lf\n", neurónio[i].sigmoid);
+
+					printf("%lf\n\n", neurónio[i].weights_neurónios); 
+				}
+
+				printf("%lf\n", bias_output);
+				printf("%lf\n", soma_hidden_layer);
+				printf("%lf\n", sigmoid_output);
+
+				AG_MODE = false;
+*/
+			}		
 
 
 
@@ -374,7 +332,7 @@ void main () {
 			DrawText(TextFormat("DISTÂNCIA_PIPE: %lf", (double) X_TO_NEXTPIPE_DOWN / (double) WIDTH), 10, 30, 20, BLACK);
 			DrawText(TextFormat("FPS: %i", GetFPS()), WIDTH - 90, 10, 20, BLACK);
 			DrawText(TextFormat("GAP_PIPE = %lf", ((double) GAP_PIPE - 150) / 150), 10, 50, 20, BLACK);
-			DrawText(TextFormat("OUTPUT: %lf", out), 10, 70, 20, BLACK);
+//			DrawText(TextFormat("OUTPUT: %lf", out), 10, 70, 20, BLACK);
 		}
 
 		EndDrawing();
