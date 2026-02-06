@@ -19,20 +19,22 @@ float POS_INICIAL_Y = HEIGHT / 2;
 bool COLISÃO_CIMA = false;
 bool COLISÃO_BAIXO = false;
 bool GAME = true;
-bool AG_MODE = true;
+bool NEXT_POP = false;
 
 int SCORE = 0;
 int X_TO_NEXTPIPE_UP = 0;
 int X_TO_NEXTPIPE_DOWN = 0;
 int GAP_PIPE = 0;
 int INDIVÍDUO_ATUAL = 0;
-
+int NÚMERO_ELITES = 20;
+int NÚMERO_DE_GENES = 26;
+int GERAÇÃO = 0;
 
 double bias_output = 0;
 double soma_hidden_layer = 0;
 double FITNESS_SCORE = 0;
 double output = 0;
-
+double TAXA_MUTAÇÃO = 0.05;
 
 struct pipes {
 	float pipe_x;
@@ -66,6 +68,19 @@ typedef struct {
 	bool VIVO;
 
 } INDIVÍDUO;
+
+
+int COMPARAR_FITNESS (const void *a, const void *b) {
+    
+	INDIVÍDUO *ind1 = (INDIVÍDUO *)a;
+   	INDIVÍDUO *ind2 = (INDIVÍDUO *)b;
+
+    
+    	if (ind1 -> fitness < ind2 -> fitness) return 1;
+    	if (ind1 -> fitness > ind2 -> fitness) return -1;
+    	return 0;
+}
+
 
 
 void GERAÇÃO_PESOS_ALEATÓRIOS (double weights [], int NÚMERO_WEIGHTS) {
@@ -107,9 +122,10 @@ double REDE (double INPUT1_NORMALIZADO, double INPUT2_NORMALIZADO, double INPUT3
         
         	soma_hidden_layer += sigmoid * peso_saida;
         
-        	double bias_saida = genes[25];
-        	soma_hidden_layer += bias_saida;
-   	 }
+        	bias_output = genes[25];
+	}
+		soma_hidden_layer += bias_output;
+   	 
 
     	double output = FUNÇÃO_SIGMOID(soma_hidden_layer);
     	return output;
@@ -206,6 +222,56 @@ void INICIAR_POPULAÇÃO (INDIVÍDUO indivíduos[200], REDE_NEURAL neurónio[5],
 }
 
 
+void FILHOS (INDIVÍDUO *PAI1, INDIVÍDUO *PAI2, INDIVÍDUO *FILHO, int NÚMERO_GENES, int TAXA_DE_MUTAÇÃO) {
+
+
+	for (int i = 0; i < NÚMERO_GENES; i++) {
+
+		FILHO -> genes [i] = (rand() % 2) ? PAI1 -> genes [i] : PAI2 -> genes[i];
+	}
+
+
+	for (int i = 0; i < NÚMERO_GENES; i++) {
+
+		if (((double)rand() / RAND_MAX) < TAXA_DE_MUTAÇÃO) {
+
+			FILHO -> genes [i] += ((double)rand() / RAND_MAX) * 2.0 - 1.0;	
+
+		}
+	}
+}
+
+
+
+void PRÓXIMA_GERAÇÃO (INDIVÍDUO indivíduos [], int NÚMERO_ELITES) {
+	
+	qsort (indivíduos, POPULAÇÃO, sizeof(INDIVÍDUO), COMPARAR_FITNESS); //ORGANIZA O ARRAY
+
+	INDIVÍDUO população_seguinte [POPULAÇÃO];
+
+	for (int i = 0; i < NÚMERO_ELITES; i++) {
+
+		população_seguinte [i] = indivíduos[i];
+	}
+
+	
+	for (int i = NÚMERO_ELITES; i < POPULAÇÃO; i++) {
+
+		int PAI1 = rand() % NÚMERO_ELITES;
+		int PAI2 = rand() % NÚMERO_ELITES;
+
+		FILHOS (&indivíduos[PAI1], &indivíduos[PAI2], &população_seguinte[i], NÚMERO_DE_GENES, TAXA_MUTAÇÃO);
+	
+	}
+
+	for (int i = 0; i < POPULAÇÃO; i++) {
+
+		indivíduos[i] = população_seguinte[i];
+		indivíduos[i].VIVO = true;
+	}
+
+
+}
 
 
 void main () {
@@ -255,7 +321,8 @@ void main () {
 	}
 	
 	while (!WindowShouldClose()) {
-	
+
+
 		int NEXTPIPE = -1;
 
                      
@@ -264,12 +331,19 @@ void main () {
 				
 			
 			output = REDE (POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE_UP / WIDTH, X_TO_NEXTPIPE_DOWN / WIDTH, indivíduos[INDIVÍDUO_ATUAL].genes);
+	
+			static bool ÚLTIMO_ESTADO  = false; // variável estática para lembrar do frame anterior
+
+			bool PULO  = (output > 0.5f && !ÚLTIMO_ESTADO);
+
+			if (PULO) {
+    				MOV_Y = -8.8f;
+			}			
+
+
+			ÚLTIMO_ESTADO  = (output > 0.5f);
+
 			
-
-			if (output > 0.5f && MOV_Y > 2.0f) {
-
-				MOV_Y = -8.8f;
-			}
 
 
 			FITNESS_SCORE ++;
@@ -309,7 +383,7 @@ void main () {
 					indivíduos[INDIVÍDUO_ATUAL].VIVO = false;
 					indivíduos[INDIVÍDUO_ATUAL].fitness = FITNESS_SCORE;
 					RESET_JOGO(colunas);
-					indivíduos[INDIVÍDUO_ATUAL++];			
+					INDIVÍDUO_ATUAL++;			
 					continue;
 
 
@@ -341,11 +415,24 @@ void main () {
                         indivíduos[INDIVÍDUO_ATUAL].VIVO = false;
                         indivíduos[INDIVÍDUO_ATUAL].fitness = FITNESS_SCORE;
 			RESET_JOGO(colunas);
-                        indivíduos[INDIVÍDUO_ATUAL++];
+                        INDIVÍDUO_ATUAL++;
                         continue;
                 }
 		
 	}
+
+		if (INDIVÍDUO_ATUAL == 199) {
+
+			NEXT_POP = true;	
+		}
+
+		if (NEXT_POP == true) {
+
+			PRÓXIMA_GERAÇÃO (indivíduos, NÚMERO_ELITES);
+			GERAÇÃO ++;
+			INDIVÍDUO_ATUAL = 0;
+			NEXT_POP = false;
+		}
 
 
 		BeginDrawing();
@@ -362,9 +449,10 @@ void main () {
 			DrawRectangle (colunas[i].pipe_x + 2, (HEIGHT - colunas[i].altura_pipechão), 70, colunas[i].altura_pipechão, GREEN);
 		}
 
-		
-		DrawText(TextFormat("INDIVÍDUO = %i", INDIVÍDUO_ATUAL), 10, 20, 20, BLACK);
-		DrawText(TextFormat("FITNESS SCORE = %lf", FITNESS_SCORE), 10, 40, 20, BLACK);
+
+		DrawText(TextFormat("GERAÇÃO = %i", GERAÇÃO), 10, 20, 20, BLACK);		
+		DrawText(TextFormat("INDIVÍDUO = %i", INDIVÍDUO_ATUAL), 10, 40, 20, BLACK);
+		DrawText(TextFormat("FITNESS SCORE = %lf", FITNESS_SCORE), 10, 60, 20, BLACK);
 			
 
 
@@ -375,25 +463,8 @@ void main () {
 		CloseWindow();
 
 		
-		for (int i = 0; i < INDIVÍDUO_ATUAL; i++) {
-
-			printf ("%lf\n", indivíduos[i].fitness);
-
-		}
-					
+				
 }
 
 
 
-//Uma Rede Neural, recebe os valores de entrada e depois processa esses valores nas camadas ocultas, nas camadas ocultas estão vários Neurónios que fazem todos o mesmo, multiplicam as entradas com os pesos gerados, adicionam o bias e aplicam a Função de Ativação.
-//
-//Após isso passam esse valor para a próxima camada, que faz exatamente o mesmo. Depois passa para a última camada que guess what ? vai fazer exatamente o mesmo mas como é apenas um neurónio dá apenas um valor e é esse valor que é processado para tomar uma decisão.
-//
-//Depois calcula-se a taxa de erro.
-//
-//Depois aplica-se um algoritmo. 
-
-
-
-
-//ERRO NA HIDDEN LAYER, LOOP DE RANDOM NUMBERS
