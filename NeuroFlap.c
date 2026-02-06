@@ -8,8 +8,9 @@
 #define HEIGHT 600
 #define FPS 60
 #define GRAVITY 0.5
-#define POPULAÇÃO = 200
+#define POPULAÇÃO  200
 
+float MOV_Y = 0.5;
 float MOV_X = 0;
 float SCROLL_IMAGEMFUNDO = 0.0f;
 float POS_INICIAL_X = 150;
@@ -35,7 +36,6 @@ struct pipes {
 	float pipe_x;
 	int altura_pipeteto;
 	int altura_pipechão;
-	bool score;
 };
 
 //------------------------------------------------
@@ -59,11 +59,8 @@ typedef struct {
 	double genes[26]; //pesos e bias
 	double fitness; //Capacidade do mesmo - Distância percorrida
 	
-	float MOV_Y;
-	float POS_y = HEIGHT / 2;
-	float POS_x = 150;
 
-	bool VIVO = true;
+	bool VIVO;
 
 } INDIVÍDUO;
 
@@ -88,28 +85,8 @@ double FUNÇÃO_SIGMOID (double x) {
 }
 
 
-double REDE (double INPUT1_NORMALIZADO, double INPUT2_NORMALIZADO, double INPUT3_NORMALIZADO, REDE_NEURAL neurónio[5], INDIVÍDUO indivíduo[INDIVÍDUO_ATUAL]) {
+double REDE (double INPUT1_NORMALIZADO, double INPUT2_NORMALIZADO, double INPUT3_NORMALIZADO, REDE_NEURAL neurónio[5]) {
 
-	int genes_indice = 0;
-
-	for (int i = 0; i < 5; i++) {
-		for (int j = 0; j < 3; j++) {
-			
-			double val_random = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
-			neurónio[i].weights[j] = val_random;
-			indivíduo[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random;
-		}
-
-			double val_random_2 = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
-			neurónio[i].bias = val_random_2;
-			indivíduo[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random_2;
-
-			double val_random_3 = ((double)rand() / RAND_MAX) * 2.0 - 1.0;	
-			neurónio[i].weights_neurónios = val_random_3;
-			indivíduo[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random_3;
-		
-	}
-	
 	
 	//Camada Oculta com 5 Neurónios na Hidden Layer || Cada Neurónio tem inicialmente 3 pesos porque temos 3 inputs.
 	for (int i = 0; i < 5; i++) {
@@ -142,24 +119,42 @@ double REDE (double INPUT1_NORMALIZADO, double INPUT2_NORMALIZADO, double INPUT3
 	
 void RESET_JOGO () {
 
-
 	SCORE = 0;
 	POS_INICIAL_X = 150;
 	POS_INICIAL_Y = HEIGHT / 2;
-
-
-
-
 
 	for (int i = 0; i < 50; i++) {
 
 		colunas[i].pipe_x = 0;
 	}
+}
 
 
+void INICIAR_POPULAÇÃO (INDIVÍDUO indivíduos[200], REDE_NEURAL neurónio[5]) {
+	
+	int genes_indice = 0;
 
+	for (int i = 0; i < 5; i++) {
+   		for (int j = 0; j < 3; j++) {
+
+			double val_random = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+                        neurónio[i].weights[j] = val_random;
+                        indivíduo[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random;
+                }
+
+                        double val_random_2 = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+                        neurónio[i].bias = val_random_2;
+                        indivíduo[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random_2;
+
+                        double val_random_3 = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+                        neurónio[i].weights_neurónios = val_random_3;
+                        indivíduo[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random_3;
+	}
 
 }
+
+
+
 
 void main () {
 
@@ -199,32 +194,35 @@ void main () {
 
 	
 	REDE_NEURAL neurónio [5];
-	INDIVÍDUO indivíduo_atual [200];
+	INDIVÍDUO indivíduos [200];
 
+	for (int i = 0; i < POPULAÇÃO; i++) {
+
+		INICIAR_POPULAÇÃO(indivíduos[i], neurónio[5]);
+
+
+	}
+	
 	while (!WindowShouldClose()) {
 	
 		int NEXTPIPE = -1;
 
-                              
-
-		for (int i = 0; i < POPULAÇÃO; i++) {
+                     
+		if (idivíduo_atual[i].VIVO == true) {
+					
 		
-			
-		if (indivíduo_atual[i].VIVO == true) {
+			double output = REDE_NEURAL(POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE_UP / WIDTH, X_TO_NEXTPIPE_DOWN / WIDTH, neurónio);
+				
 					
-			REDE (indivíduo_atual[i].POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE_UP / WIDTH, X_TO_NEXTPIPE_DOWN / WIDTH, neurónio, indivíduo_atual[i]);
-					
-			FITNESS_SCORE +=;
+	
+			MOV_Y += GRAVITY;
+		        POS_INICIAL_Y += MOV_Y;
 
-
-			indivíduo_atual[i].MOV_Y += GRAVITY;
-		        indivíduo_atual[i].POS_y += indivíduo_atual[i].MOV_Y;
-
-        		  //      POS_INICIAL_X += MOV_X;
+        		POS_INICIAL_X += MOV_X;
 
 			Rectangle BONECOHITBOX = {
-                                indivíduo_atual[i].POS_x + (BONECO.width * 0.6 - HITBOX_BONECO_X) / 2,
-                                indivíduo_atual[i].POS_y + (BONECO.height * 0.55 - HITBOX_BONECO_Y) / 2,
+                                POS_INICIAL_X + (BONECO.width * 0.6 - HITBOX_BONECO_X) / 2,
+                                POS_INICIAL_Y + (BONECO.height * 0.55 - HITBOX_BONECO_Y) / 2,
                                 HITBOX_BONECO_X,
                                 HITBOX_BONECO_Y
                         };
@@ -251,21 +249,17 @@ void main () {
 
 					indivíduo_atual[i].VIVO = false;
 					indivíduo_atual[i].fitness = FITNESS_SCORE;
+					indivíduo_atual[i++];			
 					break;
 
 
                               	}
 
 
-                                if (colunas[j].score == false && POS_INICIAL_X > colunas[i].pipe_x + 70) {
-                                        SCORE += 10;
-                                        colunas[j].score = true;
-                               	}
-
 
                                 if (GAME) {
                                         colunas[j].pipe_x -= 2.5;
-					indivíduo_atual[i].fitness = FITNESS_SCORE;
+					
 
                                	}
 
@@ -288,8 +282,12 @@ void main () {
 
 			indivíduo_atual[i].VIVO = false;
 			indivíduo_atual[i].fitness = FITNESS_SCORE;
+			indivíduo_atual[i++];
 		        break;	
                 }
+
+
+		
 
 					
 	}
