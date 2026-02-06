@@ -25,12 +25,14 @@ int SCORE = 0;
 int X_TO_NEXTPIPE_UP = 0;
 int X_TO_NEXTPIPE_DOWN = 0;
 int GAP_PIPE = 0;
-
+int INDIVÍDUO_ATUAL = 0;
 
 
 double bias_output = 0;
 double soma_hidden_layer = 0;
 double FITNESS_SCORE = 0;
+double output = 0;
+
 
 struct pipes {
 	float pipe_x;
@@ -46,6 +48,7 @@ typedef struct {
 	double weights_neurónios;
 	
 	double bias;
+	double bias_output;
 
 	double soma;
 	
@@ -85,52 +88,95 @@ double FUNÇÃO_SIGMOID (double x) {
 }
 
 
-double REDE (double INPUT1_NORMALIZADO, double INPUT2_NORMALIZADO, double INPUT3_NORMALIZADO, REDE_NEURAL neurónio[5]) {
+double REDE (double INPUT1_NORMALIZADO, double INPUT2_NORMALIZADO, double INPUT3_NORMALIZADO, double genes[26]) {
 
+	double soma_hidden_layer = 0.0;
+	int g = 0; 
+
+	for (int i = 0; i < 5; i++) {
+        
+        	double soma_neuronio = INPUT1_NORMALIZADO * genes[g++] +
+                               INPUT2_NORMALIZADO * genes[g++] +
+                               INPUT3_NORMALIZADO * genes[g++];
+        
+        	soma_neuronio += genes[g++];
+        
+        	double sigmoid = FUNÇÃO_SIGMOID(soma_neuronio);
+        
+        	double peso_saida = genes[g++];
+        
+        	soma_hidden_layer += sigmoid * peso_saida;
+        
+        	double bias_saida = genes[25];
+        	soma_hidden_layer += bias_saida;
+   	 }
+
+    	double output = FUNÇÃO_SIGMOID(soma_hidden_layer);
+    	return output;
+
+
+
+
+
+
+/*
+	double soma_hidden_layer = 0.0;
 	
 	//Camada Oculta com 5 Neurónios na Hidden Layer || Cada Neurónio tem inicialmente 3 pesos porque temos 3 inputs.
 	for (int i = 0; i < 5; i++) {
-		neurónio[i].soma = INPUT1 * neurónio[i].weights[0] +
-			   INPUT2 * neurónio[i].weights[1] +
-			   INPUT3 * neurónio[i].weights[2] +
+		neurónio[i].soma = INPUT1_NORMALIZADO * neurónio[i].weights[0] +
+			   INPUT2_NORMALIZADO * neurónio[i].weights[1] +
+			   INPUT3_NORMALIZADO * neurónio[i].weights[2] +
 			   neurónio[i].bias;
 	//Cálculo do Sigmoid que é o output que vai para o Neurónio Final
 		neurónio[i].sigmoid = FUNÇÃO_SIGMOID (neurónio[i].soma);
+	
+		soma_hidden_layer = neurónio [i].sigmoid * neurónio[i].weights_neurónios;
+
 	}
 
-
-	bias_output = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
-	//Por cada resultado Sigmoid multiplicamos por um novo peso e somamos um bias novo também
-	soma_hidden_layer = neurónio [0].sigmoid * neurónio[0].weights_neurónios +
-		     neurónio [1].sigmoid * neurónio[1].weights_neurónios +
-		     neurónio [2].sigmoid * neurónio[2].weights_neurónios +
-		     neurónio [3].sigmoid * neurónio[3].weights_neurónios +
-		     neurónio [4].sigmoid * neurónio[4].weights_neurónios +
-		     bias_output;
-
+	soma_hidden_layer += neurónio[0].bias_output;
 	//O resultado da Função Sigmoid da soma dos Sigmoids dos 5 Neurónio Escondidos é a decisão final. Se > 0.5 salta.
 	double sigmoid_output = FUNÇÃO_SIGMOID (soma_hidden_layer);
 	
 	return sigmoid_output;
-
+*/
 }
 
 	
 	
-void RESET_JOGO () {
+void RESET_JOGO (struct pipes colunas []) {
 
-	SCORE = 0;
+
+
+
 	POS_INICIAL_X = 150;
 	POS_INICIAL_Y = HEIGHT / 2;
+	FITNESS_SCORE = 0;
+	
+	float pipe_x = 640; //POSIçÃO INICIAL DO PRIMEIRO DUO DE PIPES
+        for (int i = 0; i < 50; i++) {
 
-	for (int i = 0; i < 50; i++) {
+                int height1 = (int)((rand() / (double)RAND_MAX) * (300 - 170) + 170);
+                int height2 = (int)((rand() / (double)RAND_MAX) * (200 - 150) + 150);
 
-		colunas[i].pipe_x = 0;
-	}
+
+                int altura_pipeteto = height1;
+                int altura_pipechão = height2;
+
+
+                colunas[i].pipe_x = pipe_x;
+                colunas[i].altura_pipeteto = altura_pipeteto;
+                colunas[i].altura_pipechão = altura_pipechão;
+
+
+                pipe_x += 250; //CRIA DUOS DE PIPES DE 200 EM 200
+        }
+
 }
 
 
-void INICIAR_POPULAÇÃO (INDIVÍDUO indivíduos[200], REDE_NEURAL neurónio[5]) {
+void INICIAR_POPULAÇÃO (INDIVÍDUO indivíduos[200], REDE_NEURAL neurónio[5], int INDIVÍDUO_ATUAL) {
 	
 	int genes_indice = 0;
 
@@ -139,18 +185,24 @@ void INICIAR_POPULAÇÃO (INDIVÍDUO indivíduos[200], REDE_NEURAL neurónio[5])
 
 			double val_random = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
                         neurónio[i].weights[j] = val_random;
-                        indivíduo[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random;
+                        indivíduos[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random;
                 }
 
                         double val_random_2 = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
                         neurónio[i].bias = val_random_2;
-                        indivíduo[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random_2;
+                        indivíduos[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random_2;
 
                         double val_random_3 = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
                         neurónio[i].weights_neurónios = val_random_3;
-                        indivíduo[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random_3;
+                        indivíduos[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random_3;
 	}
-
+			double val_random_4 = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+			neurónio[0].bias_output = val_random_4;
+			indivíduos[INDIVÍDUO_ATUAL].genes[genes_indice++] = val_random_4;
+		
+	
+	indivíduos[INDIVÍDUO_ATUAL].fitness = 0;
+	indivíduos[INDIVÍDUO_ATUAL].VIVO = true;
 }
 
 
@@ -176,12 +228,12 @@ void main () {
 
 		int altura_pipeteto = height1;
 		int altura_pipechão = height2;
-		bool score = false;
+		
 
 		colunas[i].pipe_x = pipe_x;
 		colunas[i].altura_pipeteto = altura_pipeteto;
 		colunas[i].altura_pipechão = altura_pipechão;
-		colunas[i].score = false;
+		
 
 		pipe_x += 250; //CRIA DUOS DE PIPES DE 200 EM 200
 	}
@@ -198,9 +250,8 @@ void main () {
 
 	for (int i = 0; i < POPULAÇÃO; i++) {
 
-		INICIAR_POPULAÇÃO(indivíduos[i], neurónio[5]);
-
-
+		INICIAR_POPULAÇÃO(indivíduos, neurónio, i);
+	
 	}
 	
 	while (!WindowShouldClose()) {
@@ -208,12 +259,20 @@ void main () {
 		int NEXTPIPE = -1;
 
                      
-		if (idivíduo_atual[i].VIVO == true) {
+		if (indivíduos[INDIVÍDUO_ATUAL].VIVO == true) {
 					
-		
-			double output = REDE_NEURAL(POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE_UP / WIDTH, X_TO_NEXTPIPE_DOWN / WIDTH, neurónio);
 				
-					
+			
+			output = REDE (POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE_UP / WIDTH, X_TO_NEXTPIPE_DOWN / WIDTH, indivíduos[INDIVÍDUO_ATUAL].genes);
+			
+
+			if (output > 0.5f && MOV_Y > 2.0f) {
+
+				MOV_Y = -8.8f;
+			}
+
+
+			FITNESS_SCORE ++;
 	
 			MOV_Y += GRAVITY;
 		        POS_INICIAL_Y += MOV_Y;
@@ -240,17 +299,18 @@ void main () {
 
 
                                 if (colunas[j].pipe_x + 70 >= POS_INICIAL_X && NEXTPIPE == -1) { //Enquanto o Boneco tiver atrás do Pipe, o NEXTPIPE vai ser sempre o mesmo índice, só reseta quando for maior que a POS_INICIAL_X
-                                        NEXTPIPE = i;
+                                        NEXTPIPE = j;
                                 }
 
 
                                 if (COLISÃO_CIMA == true || COLISÃO_BAIXO == true)
                                	{
 
-					indivíduo_atual[i].VIVO = false;
-					indivíduo_atual[i].fitness = FITNESS_SCORE;
-					indivíduo_atual[i++];			
-					break;
+					indivíduos[INDIVÍDUO_ATUAL].VIVO = false;
+					indivíduos[INDIVÍDUO_ATUAL].fitness = FITNESS_SCORE;
+					RESET_JOGO(colunas);
+					indivíduos[INDIVÍDUO_ATUAL++];			
+					continue;
 
 
                               	}
@@ -274,22 +334,17 @@ void main () {
                         GAP_PIPE = HEIGHT - (colunas[NEXTPIPE].altura_pipeteto + colunas[NEXTPIPE].altura_pipechão);
 
 		}
+	
 
-			
+		if (POS_INICIAL_Y > (HEIGHT - 50) || POS_INICIAL_Y <= 0) {
 
-
-                if (POS_INICIAL_Y > (HEIGHT - 50) || POS_INICIAL_Y <= 0) {
-
-			indivíduo_atual[i].VIVO = false;
-			indivíduo_atual[i].fitness = FITNESS_SCORE;
-			indivíduo_atual[i++];
-		        break;	
+                        indivíduos[INDIVÍDUO_ATUAL].VIVO = false;
+                        indivíduos[INDIVÍDUO_ATUAL].fitness = FITNESS_SCORE;
+			RESET_JOGO(colunas);
+                        indivíduos[INDIVÍDUO_ATUAL++];
+                        continue;
                 }
-
-
 		
-
-					
 	}
 
 
@@ -307,13 +362,11 @@ void main () {
 			DrawRectangle (colunas[i].pipe_x + 2, (HEIGHT - colunas[i].altura_pipechão), 70, colunas[i].altura_pipechão, GREEN);
 		}
 
-		if (GAME_OVER == false) {
+		
+		DrawText(TextFormat("INDIVÍDUO = %i", INDIVÍDUO_ATUAL), 10, 20, 20, BLACK);
+		DrawText(TextFormat("FITNESS SCORE = %lf", FITNESS_SCORE), 10, 40, 20, BLACK);
+			
 
-			DrawText(TextFormat("DISTÂNCIA_PIPE: %lf", (double) X_TO_NEXTPIPE_DOWN / (double) WIDTH), 10, 30, 20, BLACK);
-			DrawText(TextFormat("FPS: %i", GetFPS()), WIDTH - 90, 10, 20, BLACK);
-			DrawText(TextFormat("GAP_PIPE = %lf", ((double) GAP_PIPE - 150) / 150), 10, 50, 20, BLACK);
-//			DrawText(TextFormat("OUTPUT: %lf", out), 10, 70, 20, BLACK);
-		}
 
 		EndDrawing();
 	}
@@ -321,6 +374,13 @@ void main () {
 		UnloadTexture(BONECO);
 		CloseWindow();
 
+		
+		for (int i = 0; i < INDIVÍDUO_ATUAL; i++) {
+
+			printf ("%lf\n", indivíduos[i].fitness);
+
+		}
+					
 }
 
 
