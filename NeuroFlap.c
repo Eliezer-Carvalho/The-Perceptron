@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 #define WIDTH 900
 #define HEIGHT 600
@@ -14,7 +15,7 @@ float MOV_Y = 0.5;
 float MOV_X = 0;
 float SCROLL_IMAGEMFUNDO = 0.0f;
 float POS_INICIAL_X = 150;
-float POS_INICIAL_Y = HEIGHT / 2;
+float POS_INICIAL_Y = HEIGHT / 4;
 
 bool COLISÃO_CIMA = false;
 bool COLISÃO_BAIXO = false;
@@ -167,7 +168,7 @@ void RESET_JOGO (struct pipes colunas []) {
 
 
 	POS_INICIAL_X = 150;
-	POS_INICIAL_Y = HEIGHT / 2;
+	POS_INICIAL_Y = HEIGHT / 4;
 	FITNESS_SCORE = 0;
 	
 	float pipe_x = 640; //POSIçÃO INICIAL DO PRIMEIRO DUO DE PIPES
