@@ -3,19 +3,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <unistd.h>
 
-#define WIDTH 900
-#define HEIGHT 600
+
+#define WIDTH 680
+#define HEIGHT 680
 #define FPS 60
 #define GRAVITY 0.5
 #define POPULAÇÃO  200
 
-float MOV_Y = 0.5;
-float MOV_X = 0;
+float MOV_Y = 0.5f;
+float MOV_X = 0.5f;
 float SCROLL_IMAGEMFUNDO = 0.0f;
-float POS_INICIAL_X = 150;
-float POS_INICIAL_Y = HEIGHT / 4;
+float POS_INICIAL_X = 150.0f;
+float POS_INICIAL_Y = HEIGHT / 2;
 
 bool COLISÃO_CIMA = false;
 bool COLISÃO_BAIXO = false;
@@ -23,9 +23,8 @@ bool GAME = true;
 bool NEXT_POP = false;
 
 int SCORE = 0;
-int X_TO_NEXTPIPE_UP = 0;
-int X_TO_NEXTPIPE_DOWN = 0;
-int GAP_PIPE = 0;
+int X_TO_NEXTPIPE = 0;
+int GAP_PIPE = 180;
 int INDIVÍDUO_ATUAL = 0;
 int NÚMERO_ELITES = 20;
 int NÚMERO_DE_GENES = 26;
@@ -164,18 +163,21 @@ double REDE (double INPUT1_NORMALIZADO, double INPUT2_NORMALIZADO, double INPUT3
 	
 void RESET_JOGO (struct pipes colunas []) {
 
-
-
-
-	POS_INICIAL_X = 150;
-	POS_INICIAL_Y = HEIGHT / 4;
+	POS_INICIAL_X = 150.0f;
+	POS_INICIAL_Y = HEIGHT / 2;
 	FITNESS_SCORE = 0;
+	MOV_Y = 0.5;
+	MOV_X = 0;
 	
 	float pipe_x = 640; //POSIçÃO INICIAL DO PRIMEIRO DUO DE PIPES
         for (int i = 0; i < 50; i++) {
 
-                int height1 = (int)((rand() / (double)RAND_MAX) * (300 - 170) + 170);
-                int height2 = (int)((rand() / (double)RAND_MAX) * (200 - 150) + 150);
+		
+                int pipe_cima_max = HEIGHT - GAP_PIPE - 50;
+
+                int height1 = rand() % (pipe_cima_max - 50) + 50;
+
+                int height2 = HEIGHT - height1 - GAP_PIPE; 
 
 
                 int altura_pipeteto = height1;
@@ -187,7 +189,7 @@ void RESET_JOGO (struct pipes colunas []) {
                 colunas[i].altura_pipechão = altura_pipechão;
 
 
-                pipe_x += 250; //CRIA DUOS DE PIPES DE 200 EM 200
+                pipe_x += 300; //CRIA DUOS DE PIPES DE 200 EM 200
         }
 
 }
@@ -288,9 +290,12 @@ void main () {
 	struct pipes colunas [50];
 	float pipe_x = 640; //POSIçÃO INICIAL DO PRIMEIRO DUO DE PIPES
 	for (int i = 0; i < 50; i++) {
-		
-		int height1 = (int)((rand() / (double)RAND_MAX) * (300 - 170) + 170);
-	        int height2 = (int)((rand() / (double)RAND_MAX) * (200 - 150) + 150);
+	
+		int pipe_cima_max = HEIGHT - GAP_PIPE - 50;
+
+		int height1 = rand() % (pipe_cima_max - 50) + 50;
+
+		int height2 = HEIGHT - height1 - GAP_PIPE; 
 
 
 		int altura_pipeteto = height1;
@@ -302,7 +307,7 @@ void main () {
 		colunas[i].altura_pipechão = altura_pipechão;
 		
 
-		pipe_x += 250; //CRIA DUOS DE PIPES DE 200 EM 200
+		pipe_x += 300; //CRIA DUOS DE PIPES DE 200 EM 200
 	}
 
 	
@@ -331,7 +336,7 @@ void main () {
 					
 				
 			
-			output = REDE (POS_INICIAL_Y / HEIGHT, X_TO_NEXTPIPE_UP / WIDTH, X_TO_NEXTPIPE_DOWN / WIDTH, indivíduos[INDIVÍDUO_ATUAL].genes);
+			output = REDE ((double)POS_INICIAL_Y / (double)HEIGHT, (double)X_TO_NEXTPIPE / (double)WIDTH, (double)GAP_PIPE / (double)HEIGHT, indivíduos[INDIVÍDUO_ATUAL].genes);
 	
 			static bool ÚLTIMO_ESTADO  = false; // variável estática para lembrar do frame anterior
 
@@ -352,7 +357,8 @@ void main () {
 			MOV_Y += GRAVITY;
 		        POS_INICIAL_Y += MOV_Y;
 
-        		POS_INICIAL_X += MOV_X;
+
+//        		POS_INICIAL_X += MOV_X;
 
 			Rectangle BONECOHITBOX = {
                                 POS_INICIAL_X + (BONECO.width * 0.6 - HITBOX_BONECO_X) / 2,
@@ -365,15 +371,16 @@ void main () {
                         for (int j = 0; j < 50; j++) {
 
 
-                                Rectangle PIPECIMA = {colunas[j].pipe_x, 0, 70, colunas[j].altura_pipeteto};
-                                Rectangle PIPEBAIXO = {colunas[j].pipe_x + 2, (HEIGHT - colunas[j].altura_pipechão), 70, colunas[j].altura_pipechão};
+                                Rectangle PIPECIMA = {colunas[j].pipe_x, 0, 90, colunas[j].altura_pipeteto};
+                                Rectangle PIPEBAIXO = {colunas[j].pipe_x + 2, (HEIGHT - colunas[j].altura_pipechão), 90, colunas[j].altura_pipechão};
+
 
 
                                 COLISÃO_CIMA = CheckCollisionRecs (BONECOHITBOX, PIPECIMA);
                                 COLISÃO_BAIXO = CheckCollisionRecs (BONECOHITBOX, PIPEBAIXO);
 
 
-                                if (colunas[j].pipe_x + 70 >= POS_INICIAL_X && NEXTPIPE == -1) { //Enquanto o Boneco tiver atrás do Pipe, o NEXTPIPE vai ser sempre o mesmo índice, só reseta quando for maior que a POS_INICIAL_X
+                                if (colunas[j].pipe_x + 90 >= POS_INICIAL_X && NEXTPIPE == -1) { //Enquanto o Boneco tiver atrás do Pipe, o NEXTPIPE vai ser sempre o mesmo índice, só reseta quando for maior que a POS_INICIAL_X
                                         NEXTPIPE = j;
                                 }
 
@@ -393,7 +400,7 @@ void main () {
 
 
                                 if (GAME) {
-                                        colunas[j].pipe_x -= 2.5;
+                                        colunas[j].pipe_x -= 3.5;
 					
 
                                	}
@@ -402,13 +409,9 @@ void main () {
 
                 if (NEXTPIPE != -1) {
 
-                        X_TO_NEXTPIPE_UP  = (colunas[NEXTPIPE].pipe_x + 70) - POS_INICIAL_X;
+                        X_TO_NEXTPIPE = (colunas[NEXTPIPE].pipe_x + 90) - POS_INICIAL_X;
 
-                        X_TO_NEXTPIPE_DOWN = (colunas[NEXTPIPE].pipe_x + 70) - POS_INICIAL_X;
-
-                        GAP_PIPE = HEIGHT - (colunas[NEXTPIPE].altura_pipeteto + colunas[NEXTPIPE].altura_pipechão);
-
-		}
+      		}
 	
 
 		if (POS_INICIAL_Y > (HEIGHT - 50) || POS_INICIAL_Y <= 0) {
@@ -445,15 +448,18 @@ void main () {
 		
 
 		for (int i = 0; i < 50; i++) {
-				
-			DrawRectangle (colunas[i].pipe_x, 0, 70, colunas[i].altura_pipeteto, GREEN);
-			DrawRectangle (colunas[i].pipe_x + 2, (HEIGHT - colunas[i].altura_pipechão), 70, colunas[i].altura_pipechão, GREEN);
+			
+			DrawRectangle (colunas[i].pipe_x, 0, 90, colunas[i].altura_pipeteto, GREEN);
+			DrawRectangle (colunas[i].pipe_x + 2, (HEIGHT - colunas[i].altura_pipechão), 90, colunas[i].altura_pipechão, GREEN);
 		}
 
+		DrawText(TextFormat("Posição Y Normalizada = %lf", POS_INICIAL_Y / HEIGHT), 10, 20, 15, RED);
+		DrawText(TextFormat("Posição Até ao Próximo Pipe = %lf", X_TO_NEXTPIPE / WIDTH), 10, 40, 15, RED);
+		DrawText(TextFormat("Gap do Pipe = %lf", GAP_PIPE), 10, 60, 15, RED);
 
-		DrawText(TextFormat("GERAÇÃO = %i", GERAÇÃO), 10, 20, 20, BLACK);		
-		DrawText(TextFormat("INDIVÍDUO = %i", INDIVÍDUO_ATUAL), 10, 40, 20, BLACK);
-		DrawText(TextFormat("FITNESS SCORE = %lf", FITNESS_SCORE), 10, 60, 20, BLACK);
+		DrawText(TextFormat("GERAÇÃO = %i", GERAÇÃO), 10, 80, 20, BLACK);		
+		DrawText(TextFormat("INDIVÍDUO = %i", INDIVÍDUO_ATUAL), 10, 120, 20, BLACK);
+		DrawText(TextFormat("FITNESS SCORE = %lf", FITNESS_SCORE), 10, 160, 20, BLACK);
 			
 
 
