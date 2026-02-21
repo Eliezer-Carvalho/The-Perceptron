@@ -9,7 +9,7 @@
 #define HEIGHT 680
 #define FPS 60
 #define GRAVITY 0.5
-#define POPULAÇÃO  200
+#define POPULAÇÃO 200
 
 /*
 float MOV_Y = 0.5f;
@@ -33,7 +33,7 @@ int best_geraçao = 0;
 
 double bias_output = 0;
 double output = 0;
-double TAXA_MUTAÇÃO = 0.50;
+double TAXA_MUTAÇÃO = 0.05;
 
 int MORTES = 0;
 
@@ -88,8 +88,8 @@ int COMPARAR_FITNESS (const void *a, const void *b) {
    	INDIVÍDUO *ind2 = (INDIVÍDUO *)b;
 
     
-    	if (ind1 -> fitness < ind2 -> fitness) return 1;
-    	if (ind1 -> fitness > ind2 -> fitness) return -1;
+    	if (ind1 -> fitness_armazenado < ind2 -> fitness_armazenado) return 1;
+    	if (ind1 -> fitness_armazenado > ind2 -> fitness_armazenado) return -1;
     	return 0;
 }
 
@@ -117,39 +117,51 @@ double FUNÇÃO_SIGMOID (double x) {
 
 
 
+double RELU (double x) {
+
+    if (x < 0) {
+
+        return 0.0;
+
+    }
+
+    return x;
+
+}
 
 
-double REDE (double INPUT1_NORMALIZADO, double INPUT2_NORMALIZADO, double INPUT3_NORMALIZADO, double INPUT4_NORMALIZADO, double genes[31]) {
-
-	double soma_hidden_layer = 0.0;
-	int g = 0; 
-
-	for (int i = 0; i < 5; i++) {
-        
-        	double soma_neuronio = INPUT1_NORMALIZADO * genes[g++] +
-                               INPUT2_NORMALIZADO * genes[g++] +
-                               INPUT3_NORMALIZADO * genes[g++] +
-                               INPUT4_NORMALIZADO * genes[g++];
-        
-        	soma_neuronio += genes[g++];
-        
-        	double sigmoid = FUNÇÃO_SIGMOID(soma_neuronio);
-        
-        	double peso_saida = genes[g++];
-        
-        	soma_hidden_layer += sigmoid * peso_saida;
-        
-	}
-
-        bias_output = genes[30];
-
-		soma_hidden_layer += bias_output;
-   	 
-
-    	double output = FUNÇÃO_SIGMOID(soma_hidden_layer);
-    	return output;
 
 
+
+double REDE(double in1, double in2, double in3, double in4, double genes[31])
+{
+    int g = 0;
+    double soma_hidden_total = 0.0;
+
+    for (int i = 0; i < 5; i++)
+    {
+        double soma = 0.0;
+
+        soma += in1 * genes[g++];
+        soma += in2 * genes[g++];
+        soma += in3 * genes[g++];
+        soma += in4 * genes[g++];
+        soma += genes[g++];              // bias hidden
+
+        double relu = (soma > 0.0) ? soma : 0.0;
+
+        double peso_saida = genes[g++];
+
+        soma_hidden_total += relu * peso_saida;
+    }
+
+    soma_hidden_total += genes[30]; // bias final
+
+    // saída final (podes trocar para sigmoid se quiseres)
+    double output = FUNÇÃO_SIGMOID(soma_hidden_total);
+
+    return output;
+}
 
 
 
@@ -176,7 +188,7 @@ double REDE (double INPUT1_NORMALIZADO, double INPUT2_NORMALIZADO, double INPUT3
 	
 	return sigmoid_output;
 */
-}
+
 
 	
 	
@@ -205,13 +217,13 @@ void RESET_JOGO (struct pipes colunas [50]) {
                 colunas[i].altura_pipechão = altura_pipechão;
 
 
-                pipe_x += 300; //CRIA DUOS DE PIPES DE 200 EM 200
+                pipe_x += 400; //CRIA DUOS DE PIPES DE 200 EM 200
         }
 
 }
 
 
-void INICIAR_POPULAÇÃO (INDIVÍDUO indivíduos[200], REDE_NEURAL neurónio[5], int individuo) {
+int INICIAR_POPULAÇÃO (INDIVÍDUO indivíduos[200], REDE_NEURAL neurónio[5], int individuo) {
 	
 	int genes_indice = 0;
 
@@ -230,10 +242,12 @@ void INICIAR_POPULAÇÃO (INDIVÍDUO indivíduos[200], REDE_NEURAL neurónio[5],
                         double val_random_3 = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
                         neurónio[i].weights_neurónios = val_random_3;
                         indivíduos[individuo].genes[genes_indice++] = val_random_3;
-	}
-			double val_random_4 = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
-			neurónio[0].bias_output = val_random_4;
-			indivíduos[individuo].genes[genes_indice++] = val_random_4;
+	    }
+
+
+	double val_random_4 = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+    neurónio[0].bias_output = val_random_4;
+    indivíduos[individuo].genes[genes_indice++] = val_random_4;
 		
 	
 	indivíduos[individuo].fitness = 0;
@@ -247,81 +261,70 @@ void INICIAR_POPULAÇÃO (INDIVÍDUO indivíduos[200], REDE_NEURAL neurónio[5],
     indivíduos[individuo].CENTRO_COORDENADA_PIPE = 0;
     indivíduos[individuo].X_TO_NEXTPIPE = 0;
 
+   // return printf("%lf || %lf || %lf || %lf \n \n", val_random, val_random_2, val_random_3, val_random_4);
 
 }   
 
 
-void FILHOS (INDIVÍDUO *PAI1, INDIVÍDUO *PAI2, INDIVÍDUO *FILHO, int NÚMERO_GENES) {
+void FILHOS(INDIVÍDUO *pai1, INDIVÍDUO *pai2, INDIVÍDUO *filho)
+{
+    for (int i = 0; i < 31; i++)
+    {
+        filho->genes[i] = (rand() % 2) ? pai1->genes[i] : pai2->genes[i];
 
-
-	for (int i = 0; i < NÚMERO_GENES; i++) {
-
-		FILHO -> genes [i] = (rand() % 2) ? PAI1 -> genes [i] : PAI2 -> genes[i];
-	}
-
-
-	for (int i = 0; i < NÚMERO_GENES; i++) {
-
-		if ((rand() / (double)RAND_MAX) < 0.15) {
-
-			FILHO -> genes [i] += ((double)rand() / RAND_MAX) * 0.2 - 0.1;	
-
-		}
-	}
+        if ((double)rand() / RAND_MAX < TAXA_MUTAÇÃO)
+        {
+            filho->genes[i] += ((double)rand() / RAND_MAX) * 0.4 - 0.2;
+        }
+    }
 }
 
 
 
-void PRÓXIMA_GERAÇÃO (INDIVÍDUO indivíduos [200], int NÚMERO_ELITES) {
-	
-	qsort (indivíduos, POPULAÇÃO, sizeof(INDIVÍDUO), COMPARAR_FITNESS); //ORGANIZA O ARRAY
+void PRÓXIMA_GERAÇÃO(INDIVÍDUO indivíduos[])
+{
+    qsort(indivíduos, POPULAÇÃO, sizeof(INDIVÍDUO), COMPARAR_FITNESS);
 
-	INDIVÍDUO próxima_população [POPULAÇÃO];
+    INDIVÍDUO nova_pop[POPULAÇÃO];
 
-	for (int i = 0; i < NÚMERO_ELITES; i++) {
+    // 🔹 ELITISMO
+    for (int i = 0; i < NÚMERO_ELITES; i++)
+        nova_pop[i] = indivíduos[i];
 
-		próxima_população [i] = indivíduos[i];
-	}
+    // 🔹 RESTANTE POPULAÇÃO
+    for (int i = NÚMERO_ELITES; i < POPULAÇÃO; i++)
+    {
+        int p1 = rand() % NÚMERO_ELITES;
+        int p2 = rand() % NÚMERO_ELITES;
 
-	
-	for (int i = NÚMERO_ELITES; i < POPULAÇÃO; i++) {
+        FILHOS(&nova_pop[p1], &nova_pop[p2], &nova_pop[i]);
+    }
 
-		int PAI1 = rand() % (NÚMERO_ELITES);
-       
-		int PAI2 = rand() % (NÚMERO_ELITES);
-   
-		FILHOS (&indivíduos[PAI1], &indivíduos[PAI2], &próxima_população[i], NÚMERO_DE_GENES);
-	
-	}
+    // 🔹 RESET DOS INDIVÍDUOS
+    for (int i = 0; i < POPULAÇÃO; i++)
+    {
+        indivíduos[i] = nova_pop[i];
 
-	for (int i = 0; i < POPULAÇÃO; i++) {
+        indivíduos[i].fitness = 0;
+        indivíduos[i].VIVO = true;
+        indivíduos[i].POS_INICIAL_Y = rand() % HEIGHT;
+        indivíduos[i].POS_INICIAL_X = 150;
 
-		indivíduos[i] = próxima_população[i];
-	    indivíduos[i].fitness = 0;
-    	indivíduos[i].fitness_armazenado = 0;
-
-	    indivíduos[i].VIVO = true;
-        indivíduos[i].PODE_SALTAR = true;
-        indivíduos[i].POS_INICIAL_Y = ((double)rand() / RAND_MAX) * HEIGHT;
-        indivíduos[i].POS_INICIAL_X = 150.0f;
-        indivíduos[i].MOV_Y = 0.5;
+        indivíduos[i].fitness_armazenado = 0;
         indivíduos[i].CENTRO_COORDENADA_PIPE = 0;
         indivíduos[i].X_TO_NEXTPIPE = 0;
-
-	}
-    
-    printf("%lu", sizeof(próxima_população[0]) / sizeof(próxima_população));
-
+        indivíduos[i].MOV_Y = 0.5f;
+    }
 }
 
 
-void ALGORITMO_GENÉTICO (INDIVÍDUO indivíduos[200], int HITBOX_BONECO_X, int HITBOX_BONECO_Y, struct pipes colunas[50], Texture2D BONECO) {
+double ALGORITMO_GENÉTICO (INDIVÍDUO indivíduos[200], int HITBOX_BONECO_X, int HITBOX_BONECO_Y, struct pipes colunas[50], Texture2D BONECO) {
         
     
 
     for (int i = 0; i < POPULAÇÃO; i++) {
 
-        if (!indivíduos[i].VIVO) {
+        if (indivíduos[i].VIVO == false) {
            
             continue;
         
@@ -371,10 +374,11 @@ void ALGORITMO_GENÉTICO (INDIVÍDUO indivíduos[200], int HITBOX_BONECO_X, int 
 
 			    indivíduos[i].VIVO = false;
                 //indivíduos[i].MOV_Y = 0;
-                indivíduos[i].POS_INICIAL_X -= 300.0f;
-                //indivíduos[i].POS_INICIAL_Y = 0;
+                indivíduos[i].POS_INICIAL_X = -100.0f;
+                //indivíduos[i].POS_INICIAL_Y += HEIGHT;
                 indivíduos[i].fitness_armazenado = indivíduos[i].fitness;
                 MORTES +=1;
+                break;
 
             }
 
@@ -384,33 +388,38 @@ void ALGORITMO_GENÉTICO (INDIVÍDUO indivíduos[200], int HITBOX_BONECO_X, int 
         } 
 
 
-        if (NEXTPIPE != -1) {
+       if (NEXTPIPE != -1)
+{
+    indivíduos[i].X_TO_NEXTPIPE =
+        (colunas[NEXTPIPE].pipe_x + 90) - indivíduos[i].POS_INICIAL_X;
 
-            indivíduos[i].X_TO_NEXTPIPE = (colunas[NEXTPIPE].pipe_x + 90) - indivíduos[i].POS_INICIAL_X;
-
-      	}
+    indivíduos[i].CENTRO_COORDENADA_PIPE =
+        colunas[NEXTPIPE].altura_pipeteto + (GAP_PIPE / 2.0);
+}
 
 
         if (indivíduos[i].POS_INICIAL_Y > (HEIGHT - 50) || indivíduos[i].POS_INICIAL_Y <= 0) {
 
             indivíduos[i].VIVO = false;
             //indivíduos[i].MOV_Y = 0;
-            indivíduos[i].POS_INICIAL_X -= 300.0f;
-            //indivíduos[i].POS_INICIAL_Y = 0;
+            indivíduos[i].POS_INICIAL_X = -100.0f;
+            //indivíduos[i].POS_INICIAL_Y += HEIGHT;
             MORTES += 1;
             indivíduos[i].fitness_armazenado = indivíduos[i].fitness;
+            break;
 
 		
                 }
 
 
-        output = REDE ((double) indivíduos[i].POS_INICIAL_Y / (double) HEIGHT,
-                       (double) indivíduos[i].X_TO_NEXTPIPE / (double) WIDTH,
-                       (double) indivíduos[i].MOV_Y / (double) HEIGHT,
-                       (double) (indivíduos[i].CENTRO_COORDENADA_PIPE - indivíduos[i].POS_INICIAL_Y) / (double) HEIGHT,
-                        indivíduos[i].genes);
+        double in1 = (double) indivíduos[i].POS_INICIAL_Y / (double) HEIGHT;
+        double in2 = (double) indivíduos[i].X_TO_NEXTPIPE / (double) WIDTH;
+        double in3 = (double) indivíduos[i].MOV_Y / (double) 10.0;  // melhor escala
+        double in4 = ((double) indivíduos[i].CENTRO_COORDENADA_PIPE - (double) indivíduos[i].POS_INICIAL_Y) / (double) HEIGHT;
 
-     
+        output = REDE (in1, in2, in3, in4, indivíduos[i].genes);
+
+        
         //bool deseja_saltar = (output > 0.5f);
 
 
@@ -421,6 +430,7 @@ void ALGORITMO_GENÉTICO (INDIVÍDUO indivíduos[200], int HITBOX_BONECO_X, int 
             }
 
         }
+
 
 }
 
@@ -455,7 +465,7 @@ void main () {
 		colunas[i].altura_pipechão = altura_pipechão;
 		
 
-		pipe_x += 300; //CRIA DUOS DE PIPES DE 200 EM 200
+		pipe_x += 400; //CRIA DUOS DE PIPES DE 200 EM 200
 	}
 
 	
@@ -474,8 +484,15 @@ void main () {
 	
 	}
 
+    /*for (int i = 0; i < POPULAÇÃO; i++) {
+            printf("REDE %i -------- \n \n", i);
+            for (int j = 0; j < 31; j++) {
+                printf("Pesos e Bias = %lf \n", indivíduos[i].genes[j]);
+            }
+           
+        }
 
-	
+	*/
 
 	while (!WindowShouldClose()) {
 
@@ -527,7 +544,7 @@ void main () {
 		if (NEXT_POP == true) {
 
            
-			PRÓXIMA_GERAÇÃO (indivíduos, NÚMERO_ELITES);          
+			PRÓXIMA_GERAÇÃO (indivíduos);          
             RESET_JOGO (colunas);
 			GERAÇÃO ++;
             MORTES = 0;
@@ -555,7 +572,7 @@ void main () {
 		DrawText(TextFormat("GERAÇÃO = %i", GERAÇÃO), 10, 80, 20, BLACK);		
 		DrawText(TextFormat("MORTES = %i", MORTES), 10, 120, 20, BLACK);
         DrawText(TextFormat("MELHOR FITNESS = %lf", best), 10, 160, 20, RED);
-        DrawText(TextFormat("NA GERAÇÃO = %i", best_geraçao), 10, 200, 20, RED);
+     
 
 
 		EndDrawing();
@@ -564,20 +581,15 @@ void main () {
 		UnloadTexture(BONECO);
 		CloseWindow();
 
-        for (int i = 0; i < 31; i++) {
-            printf("%lf || ", indivíduos[20].genes[i]);
-            printf("%lf \n \n", indivíduos[80].genes[i]);
-            
-        }
+      
 
-        
-        printf("\n \n \n%lf ||", (double) indivíduos[0].POS_INICIAL_Y /  (double) WIDTH);
-        printf("%lf ||", (double) indivíduos[30].X_TO_NEXTPIPE / (double) WIDTH);
-        printf("%lf || ", (double) indivíduos[70].MOV_Y /  (double) HEIGHT); //ANalisar
-        printf("%lf ||", (double) (indivíduos[190].CENTRO_COORDENADA_PIPE - indivíduos[190].POS_INICIAL_Y) /  (double) HEIGHT);
-		
-        	
-}
 
+
+
+       	
+}   
+
+//MORREM SEM BATER ??
+//TESTAR VALORES COM POPULAÇÃO PEQUENA
 
 

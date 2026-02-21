@@ -1,0 +1,45 @@
+Podes testar este Rede Neural toda ? 
+Os primeiros 26 são os pesos e os inputs são -0.5, 0.2 e 0.9.
+
+Vai multiplicando por ordem do indíce ou seja para o primeiro neuronio input 1 * indice 0 + input2 * indice1 + input3 * indice2 + indice3 (bias) = x e depois no proximo neuronio começas no indice 4, percebes ?
+segues assim até à decisão final.
+
+dados: 
+
+indíce [0] = 0.868454
+indíce [1] = 0.385054
+indíce [2] = 0.080722
+indíce [3] = -0.153184
+indíce [4] = 0.745225
+indíce [5] = -0.072848
+indíce [6] = 0.501713
+indíce [7] = 0.666430
+indíce [8] = -0.312698
+indíce [9] = 0.714025
+indíce [10] = -0.202941
+indíce [11] = -0.640818
+indíce [12] = 0.835037
+indíce [13] = 0.739052
+indíce [14] = 0.282325
+indíce [15] = 0.557540
+indíce [16] = -0.972193
+indíce [17] = 0.757979
+indíce [18] = 0.713036
+indíce [19] = 0.255229
+indíce [20] = -0.794056
+indíce [21] = -0.344222
+indíce [22] = -0.616463
+indíce [23] = 0.097110
+indíce [24] = 0.102007
+indíce [25] = -0.023734
+Saída do Neurónio 0 = -0.437750
+Saída do Neurónio 1 = 0.730789
+Saída do Neurónio 2 = -0.524311
+Saída do Neurónio 3 = 0.541924
+Saída do Neurónio 4 = 1.534654
+RELU da Saída do Neurónio 0 = 0.000000
+RELU da Saída do Neurónio 1 = 0.730789
+RELU da Saída do Neurónio 2 = 0.000000
+RELU da Saída do Neurónio 3 = 0.541924
+RELU da Saída do Neurónio 4 = 1.534654
+Decisão Final da Rede = 0.483477
