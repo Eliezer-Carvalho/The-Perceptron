@@ -4,38 +4,29 @@
 #include <stdlib.h>
 #include <time.h>
 
-
 #define WIDTH 680
 #define HEIGHT 680
 #define FPS 60
 #define GRAVITY 0.5
 #define POPULAÇÃO 200
+#define GAP_PIPE 150
+#define NÚMERO_DE_GENES 31
+#define NÚMERO_ELITES 20
+#define TAXA_MUTAÇÃO 0.5
 
-/*
-float MOV_Y = 0.5f;
-float MOV_X = 0.5f;
-float SCROLL_IMAGEMFUNDO = 0.0f;
-float POS_INICIAL_X = 150.0f;
-float POS_INICIAL_Y = HEIGHT / 2;
-*/
 
 bool COLISÃO_CIMA = false;
 bool COLISÃO_BAIXO = false;
 bool NEXT_POP = false;
 
-//int X_TO_NEXTPIPE = 0;
-int GAP_PIPE = 180;
-int NÚMERO_ELITES = 20;
-int NÚMERO_DE_GENES = 31;
 int GERAÇÃO = 0;
-float best = 0;
-int best_geraçao = 0;
+int MORTES = 0;
 
 double bias_output = 0;
 double output = 0;
-double TAXA_MUTAÇÃO = 0.05;
 
-int MORTES = 0;
+float best = 0;
+
 
 
 struct pipes {
@@ -94,19 +85,7 @@ int COMPARAR_FITNESS (const void *a, const void *b) {
 }
 
 
-/*
-void GERAÇÃO_PESOS_ALEATÓRIOS (double weights [], int NÚMERO_WEIGHTS) {
 
-
-	for (int i = 0; i < NÚMERO_WEIGHTS; i++) {
-
-		weights [i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
-	}
-
-}
-*/
-
-//Melhorar, existe uma versão mais rápida
 double FUNÇÃO_SIGMOID (double x) {
 	
 	//return  x / (1 + fabs(x));
@@ -146,9 +125,9 @@ double REDE(double in1, double in2, double in3, double in4, double genes[31])
         soma += in2 * genes[g++];
         soma += in3 * genes[g++];
         soma += in4 * genes[g++];
-        soma += genes[g++];              // bias hidden
+        soma += genes[g++];              
 
-        double relu = (soma > 0.0) ? soma : 0.0;
+        double relu = RELU (soma);
 
         double peso_saida = genes[g++];
 
@@ -157,37 +136,14 @@ double REDE(double in1, double in2, double in3, double in4, double genes[31])
 
     soma_hidden_total += genes[30]; // bias final
 
-    // saída final (podes trocar para sigmoid se quiseres)
-    double output = FUNÇÃO_SIGMOID(soma_hidden_total);
+
+    double output = RELU (soma_hidden_total);
 
     return output;
 }
 
 
 
-
-/*
-	double soma_hidden_layer = 0.0;
-	
-	//Camada Oculta com 5 Neurónios na Hidden Layer || Cada Neurónio tem inicialmente 3 pesos porque temos 3 inputs.
-	for (int i = 0; i < 5; i++) {
-		neurónio[i].soma = INPUT1_NORMALIZADO * neurónio[i].weights[0] +
-			   INPUT2_NORMALIZADO * neurónio[i].weights[1] +
-			   INPUT3_NORMALIZADO * neurónio[i].weights[2] +
-			   neurónio[i].bias;
-	//Cálculo do Sigmoid que é o output que vai para o Neurónio Final
-		neurónio[i].sigmoid = FUNÇÃO_SIGMOID (neurónio[i].soma);
-	
-		soma_hidden_layer = neurónio [i].sigmoid * neurónio[i].weights_neurónios;
-
-	}
-
-	soma_hidden_layer += neurónio[0].bias_output;
-	//O resultado da Função Sigmoid da soma dos Sigmoids dos 5 Neurónio Escondidos é a decisão final. Se > 0.5 salta.
-	double sigmoid_output = FUNÇÃO_SIGMOID (soma_hidden_layer);
-	
-	return sigmoid_output;
-*/
 
 
 	
@@ -287,11 +243,11 @@ void PRÓXIMA_GERAÇÃO(INDIVÍDUO indivíduos[])
 
     INDIVÍDUO nova_pop[POPULAÇÃO];
 
-    // 🔹 ELITISMO
+   
     for (int i = 0; i < NÚMERO_ELITES; i++)
         nova_pop[i] = indivíduos[i];
 
-    // 🔹 RESTANTE POPULAÇÃO
+
     for (int i = NÚMERO_ELITES; i < POPULAÇÃO; i++)
     {
         int p1 = rand() % NÚMERO_ELITES;
@@ -300,7 +256,7 @@ void PRÓXIMA_GERAÇÃO(INDIVÍDUO indivíduos[])
         FILHOS(&nova_pop[p1], &nova_pop[p2], &nova_pop[i]);
     }
 
-    // 🔹 RESET DOS INDIVÍDUOS
+  
     for (int i = 0; i < POPULAÇÃO; i++)
     {
         indivíduos[i] = nova_pop[i];
@@ -378,7 +334,7 @@ double ALGORITMO_GENÉTICO (INDIVÍDUO indivíduos[200], int HITBOX_BONECO_X, in
                 //indivíduos[i].POS_INICIAL_Y += HEIGHT;
                 indivíduos[i].fitness_armazenado = indivíduos[i].fitness;
                 MORTES +=1;
-                break;
+                
 
             }
 
@@ -406,7 +362,7 @@ double ALGORITMO_GENÉTICO (INDIVÍDUO indivíduos[200], int HITBOX_BONECO_X, in
             //indivíduos[i].POS_INICIAL_Y += HEIGHT;
             MORTES += 1;
             indivíduos[i].fitness_armazenado = indivíduos[i].fitness;
-            break;
+            
 
 		
                 }
@@ -414,18 +370,15 @@ double ALGORITMO_GENÉTICO (INDIVÍDUO indivíduos[200], int HITBOX_BONECO_X, in
 
         double in1 = (double) indivíduos[i].POS_INICIAL_Y / (double) HEIGHT;
         double in2 = (double) indivíduos[i].X_TO_NEXTPIPE / (double) WIDTH;
-        double in3 = (double) indivíduos[i].MOV_Y / (double) 10.0;  // melhor escala
+        double in3 = (double) indivíduos[i].MOV_Y / (double) 10.0;  
         double in4 = ((double) indivíduos[i].CENTRO_COORDENADA_PIPE - (double) indivíduos[i].POS_INICIAL_Y) / (double) HEIGHT;
 
         output = REDE (in1, in2, in3, in4, indivíduos[i].genes);
 
         
-        //bool deseja_saltar = (output > 0.5f);
 
 
-        //if (deseja_saltar && indivíduos[i].MOV_Y >= -0.1f) { 
-
-          if (output > 0.5) {
+          if (output > 0.0) {
             indivíduos[i].MOV_Y = -8.8f;
             }
 
@@ -535,9 +488,9 @@ void main () {
             }
 
 
-            if (best < last && GERAÇÃO > best_geraçao) {
+            if (best < last) {
                 best = last;            
-                best_geraçao = GERAÇÃO; 
+                
             }
 		}
 
