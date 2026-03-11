@@ -63,6 +63,7 @@ typedef struct {
     float CENTRO_COORDENADA_PIPE;     
     int X_TO_NEXTPIPE;
 
+
 } PESSOA;
 
 
@@ -71,6 +72,7 @@ typedef struct {
 
 
 int COMPARAÇÃO (const void *a, const void *b);
+
 
 double FUNÇÃO_ATIVAÇÃO_SIGMOID (double x);
 double FUNÇÃO_ATIVAÇÃO_ReLU (double x);
@@ -185,8 +187,8 @@ int main () {
 
             if (x[i].VIVO == false) {
                    
-                x[i].POS_INICIAL_Y += 12.0f;
-                x[i].POS_INICIAL_X -= 12.0f;
+                //x[i].POS_INICIAL_Y += 12.0f;
+                x[i].POS_INICIAL_X = -150;
             }    
         }
 
@@ -196,7 +198,7 @@ int main () {
 
 
         for (int i = 0; i < POPULAÇÃO; i++) {
-		    DrawTextureEx(Flappy, (Vector2) {x[i].POS_INICIAL_X, x[i].POS_INICIAL_Y}, 0, 0.5, WHITE);
+		    DrawTextureEx(Flappy, (Vector2) {x[i].POS_INICIAL_X, x[i].POS_INICIAL_Y}, 0, 0.5, RAYWHITE);
 	    }
 		
 
@@ -237,6 +239,8 @@ int COMPARAÇÃO (const void *a, const void *b) {
     return 0;
 
 }
+
+
 
 
 double FUNÇÃO_ATIVAÇÃO_SIGMOID (double x) {
@@ -286,7 +290,7 @@ void GERAÇÃO_0 (PESSOA x []) {
 
 
     for (int i = 0; i < POPULAÇÃO; i++) {
-        for (int j = 0; j < NÚMERO_GENES - 1; j++) {
+        for (int j = 0; j < NÚMERO_GENES; j++) {
 
             x[i].GENES[j] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
         }
@@ -301,6 +305,9 @@ void GERAÇÃO_0 (PESSOA x []) {
             x[i].POS_INICIAL_X = 150;
             x[i].POS_INICIAL_Y = ((double)rand() / RAND_MAX) * ALTURA;
             x[i].VELOCIDADE_Y = 0.5;
+
+
+            
     }
 }
 
@@ -387,6 +394,8 @@ void NEXT_GERAÇÕES (PESSOA x [], int ELITES) {
         x[i].POS_INICIAL_Y = ((double)rand() / RAND_MAX) * ALTURA;
         x[i].VELOCIDADE_Y = 0.5;
 
+
+       
     }
 }
 
