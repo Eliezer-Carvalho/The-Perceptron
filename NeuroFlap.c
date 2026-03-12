@@ -127,6 +127,16 @@ int main () {
     GERAÇÃO_0 (x);
 
 
+    FILE* LOGS;
+
+    LOGS = fopen ("4INPUTSNORMALIZADOS_5NEURÓNIOS_SIGMOID_RELU.txt", "w");
+        
+    
+
+    
+
+
+
     while (!WindowShouldClose()) {
 
         MAIN_LOOP (x, colunas, Flappy);
@@ -137,34 +147,26 @@ int main () {
 		}		
 
 
+
         if (MORTES >= POPULAÇÃO) {
 
 			NEXT_POPULATION = true;
-            float last = best;
+            
+            for (int i = 0; i < POPULAÇÃO; i++) {
+                
+                fprintf(LOGS, "\n Indivíduo %i \n", i);
+    
+                for (int j = 0; j < NÚMERO_GENES; j++) {
 
-
-        for (int i = 0; i < POPULAÇÃO; i++) {
-   
-            if (x[i].STORED_FITNESS > 150) {
-       
-                if (x[i].STORED_FITNESS > best) {
-                    best = x[i].STORED_FITNESS;
+                    fprintf(LOGS, "Genes %i -> %lf \n", j, x[i].GENES[j]);
                 }
+                
+                fprintf(LOGS, "FITNESS = %lf \n", x[i].STORED_FITNESS);                
+            
             }
         }
 
 
-            if (best > last) {
-    
-                continue;
-            }
-
-
-            if (best < last) {
-                best = last;            
-                
-            }
-		}
 
 		if (NEXT_POPULATION == true) {
 
@@ -229,6 +231,7 @@ int main () {
 
 		UnloadTexture(Flappy);
 		CloseWindow();
+        fclose(LOGS);
 
 }
 
