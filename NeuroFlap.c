@@ -196,15 +196,10 @@ int main () {
 
         for (int i = 0; i < POPULAÇÃO; i++) {
 		    
-            float ROTAÇÃO = x[i].VELOCIDADE_Y * 2.0f;
+            DrawTextureEx(Flappy, (Vector2){x[i].POS_INICIAL_X, x[i].POS_INICIAL_Y}, 0, 0.45, RAYWHITE);
 
-            if (ROTAÇÃO > 50) ROTAÇÃO = -50;
-            if (ROTAÇÃO < -50) ROTAÇÃO = 50;
-
-            DrawTextureEx(Flappy, (Vector2){x[i].POS_INICIAL_X, x[i].POS_INICIAL_Y}, ROTAÇÃO, 0.45, RAYWHITE);
-
-            //DrawCircle (x[i].POS_INICIAL_X + (Flappy.width * 0.45 / 2 + 10),
-            //            x[i].POS_INICIAL_Y + (Flappy.height * 0.45 / 2 + x[i].VELOCIDADE_Y * 2.0f), 16, BLACK);
+            // Debug DrawCircle (x[i].POS_INICIAL_X + (Flappy.width * 0.45 / 2 + 10),
+            //           x[i].POS_INICIAL_Y + (Flappy.height * 0.45 / 2), 20, BLACK);
 
 
         }
@@ -468,8 +463,8 @@ void MAIN_LOOP (PESSOA x [], struct TUBOS colunas[], Texture2D Flappy) {
 
 
         Vector2 FLAPPYHITBOX = {
-                                x[i].POS_INICIAL_X + (Flappy.width * 0.45 / 2.0f + 10),
-                                x[i].POS_INICIAL_Y + (Flappy.height * 0.45 / 2.0f + x[i].VELOCIDADE_Y * 2.0f)
+                                x[i].POS_INICIAL_X + (Flappy.width * 0.45 / 2 + 10),
+                                x[i].POS_INICIAL_Y + (Flappy.height * 0.45 / 2)
                         };
     
        
