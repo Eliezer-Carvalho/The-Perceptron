@@ -100,10 +100,7 @@ int main () {
     SetTargetFPS (FPS);
 
     Texture2D Flappy = LoadTexture("Background/flappybird2.png");
-    
-    Font teste = LoadFont ("/home/eliezer/The Perceptron/basic_square_7_solid.ttf");
-
-    const char testeee[256] = "TESTE"; 
+   
     
     struct TUBOS colunas [NÚMERO_TUBOS];
     float POS_INICIAL_X_PRIMEIRO_PIPE = 680;
@@ -120,7 +117,7 @@ int main () {
         colunas[i].ALTURA_TUBO_CIMA = ALTURA_TUBO_CIMA;
         colunas[i].ALTURA_TUBO_BAIXO = ALTURA_TUBO_BAIXO;
 
-        POS_INICIAL_X_PRIMEIRO_PIPE += 300;
+        POS_INICIAL_X_PRIMEIRO_PIPE += 280;
 
 	}
 
@@ -215,11 +212,11 @@ int main () {
 
         
 
-		DrawText(TextFormat("GERAÇÃO = %i", GERAÇÃO), 10, 80, 20, BLACK);		
-		DrawText(TextFormat("MORTES = %i", MORTES), 10, 120, 20, BLACK);
-        DrawText(TextFormat("MELHOR FITNESS = %lf", best), 10, 160, 20, RED);
+		DrawText(TextFormat("População %i", GERAÇÃO), 30, 50, 25, BLACK);		
+		DrawText(TextFormat("Indivíduos Restantes = %i", POPULAÇÃO - MORTES), 30, 80, 25, BLACK);
+        //DrawText(TextFormat("MELHOR FITNESS = %lf", best), 10, 160, 20, RED);
 
-        DrawTextEx(teste, testeee, (Vector2) {20.0f, 100.0f}, 40, 0.5, RED);
+       
      
 
 
@@ -286,7 +283,7 @@ void RESET_JOGO (struct TUBOS colunas []) {
         colunas[i].ALTURA_TUBO_CIMA = ALTURA_TUBO_CIMA;
         colunas[i].ALTURA_TUBO_BAIXO = ALTURA_TUBO_BAIXO;
 
-        POS_INICIAL_X_PRIMEIRO_PIPE_2 += 300;
+        POS_INICIAL_X_PRIMEIRO_PIPE_2 += 280;
 
 	}
 
