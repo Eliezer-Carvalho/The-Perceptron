@@ -178,8 +178,8 @@ int main () {
 
 
 		if (NEXT_POPULATION == true) {
-
-           
+            
+             
 			NEXT_GERAÇÕES (x, NUM_ELITES);          
             RESET_JOGO (colunas);
 			GERAÇÃO ++;
@@ -232,7 +232,7 @@ int main () {
 
 		DrawText(TextFormat("População %i", GERAÇÃO), 30, 50, 25, BLACK);		
 		DrawText(TextFormat("Indivíduos Restantes = %i", POPULAÇÃO - MORTES), 30, 80, 25, BLACK);
-        //DrawText(TextFormat("MELHOR FITNESS = %lf", best), 10, 160, 20, RED);
+        
 
        
      
@@ -384,6 +384,7 @@ double MULTILAYER_PERCEPTRON (double INPUT1, double INPUT2, double INPUT3, doubl
 void NEXT_GERAÇÕES (PESSOA x [], int ELITES) {
 
     qsort (x, POPULAÇÃO, sizeof(PESSOA), COMPARAÇÃO);
+  
 
     PESSOA NEW_GEN [POPULAÇÃO];
     
@@ -414,7 +415,7 @@ void NEXT_GERAÇÕES (PESSOA x [], int ELITES) {
         x[i].VIVO = true;
 
         x[i].POS_INICIAL_X = 150;
-        x[i].POS_INICIAL_Y = 40 + ((double)rand() / RAND_MAX) * (ALTURA + 40);
+        x[i].POS_INICIAL_Y = 40 + ((double)rand() / RAND_MAX) * (ALTURA - 40);
         x[i].VELOCIDADE_Y = 0.5;
 
 
@@ -499,9 +500,8 @@ void MAIN_LOOP (PESSOA x [], struct TUBOS colunas[], Texture2D Flappy) {
                 NEXTPIPE = j;
             }
 
-            
-
-
+                    
+    
             if (COLISÃO_CIMA == true || COLISÃO_BAIXO == true) {
 
 			    x[i].VIVO = false;
@@ -538,6 +538,15 @@ void MAIN_LOOP (PESSOA x [], struct TUBOS colunas[], Texture2D Flappy) {
             //x[i].POS_INICIAL_X -= 200.0f;
             //x[i].POS_INICIAL_Y += 200.0f;
 		
+        }
+
+
+        if (NEXTPIPE == -1 && x[i].VIVO == true) {
+
+                x[i].VIVO = false;
+                x[i].STORED_FITNESS = x[i].FITNESS + 10000; // bónus de vitória
+                MORTES += 1;
+
         }
 
 
