@@ -22,11 +22,12 @@ bool COLISÃO_CIMA = false;
 bool COLISÃO_BAIXO = false;
 bool NEXT_POPULATION = false;
 
+
 int TUBO_GAP = 180; //INPUT 1
 int MORTES = 0;
 int GERAÇÃO = 0;
 
-float best = 0;
+
 
 
 //--------------------------------------------------------------------------------- STRUCTS -----------------------------------------------------------------------------
@@ -139,13 +140,16 @@ int main () {
 
     while (!WindowShouldClose()) {
 
+        
+
         MAIN_LOOP (x, colunas, Flappy);
 
         for (int i = 0; i < NÚMERO_TUBOS; i++) {
            
              colunas[i].POS_EIXO_X -= 2.9;
-		}		
+		}	
 
+ 
 
 
         if (MORTES >= POPULAÇÃO) {
@@ -193,6 +197,9 @@ int main () {
                 x[i].POS_INICIAL_X -= 3.0f;
             }    
         }
+
+
+        
 
 
 
@@ -492,6 +499,7 @@ void MAIN_LOOP (PESSOA x [], struct TUBOS colunas[], Texture2D Flappy) {
                 NEXTPIPE = j;
             }
 
+            
 
 
             if (COLISÃO_CIMA == true || COLISÃO_BAIXO == true) {
