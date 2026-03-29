@@ -15,8 +15,8 @@
 #define NUM_ELITES 25 
 #define TAXA_DE_MUTAÇÃO 0.05 
 #define NÚMERO_TUBOS 75
-#define NÚMERO_GENES 71
-#define NÚMERO_NEURÓNIOS_CAMADA_OCULTA 10
+#define NÚMERO_GENES 31
+#define NÚMERO_NEURÓNIOS_CAMADA_OCULTA 5
 
 bool COLISÃO_CIMA = false;
 bool COLISÃO_BAIXO = false;
@@ -88,7 +88,7 @@ void RESET_JOGO (struct TUBOS colunas []);
 
 void GERAÇÃO_0 (PESSOA x []);
 
-double MULTILAYER_PERCEPTRON (double INPUT1, double INPUT2, double INPUT3, double INPUT4, double INPUT5, PESSOA *x);
+double MULTILAYER_PERCEPTRON (double INPUT1, double INPUT2, double INPUT3, double INPUT4, PESSOA *x);
 
 void NEXT_GERAÇÕES (PESSOA x [], int ELITES);
 void FILHOS_NEXT_GERAÇÕES (PESSOA *PAI1, PESSOA *PAI2, PESSOA *FILHO, int NÚMERO_DE_GENES);
@@ -106,7 +106,7 @@ int main () {
     InitWindow (LARGURA, ALTURA, "Neuro Flap");
     SetTargetFPS (FPS);
 
-    Texture2D Flappy = LoadTexture("/home/eliezer/Neuro Flap/Imagens/flappybird2.png");
+    Texture2D Flappy = LoadTexture("Imagens/flappybird2.png");
    
     
     struct TUBOS colunas [NÚMERO_TUBOS];
@@ -158,7 +158,17 @@ int main () {
 			NEXT_POPULATION = true;
 
             fprintf (LOGS, "\n GERAÇÃO %i \n -----------------------------------------------------", GERAÇÃO);
-                              
+            
+            for (int i = 0; i < POPULAÇÃO; i++) {
+                
+                fprintf(LOGS, "\n Indivíduo %i \n", i);
+    
+                for (int j = 0; j < NÚMERO_GENES; j++) {
+
+                    fprintf(LOGS, "Genes %i -> %lf \n", j, x[i].GENES[j]);
+                }
+            }
+            
             for (int i = 0; i < POPULAÇÃO; i++) {
             
                fprintf(LOGS, "Fitness Indivíduo %i = %lf \n", i, x[i].STORED_FITNESS);   
@@ -371,17 +381,16 @@ void GERAÇÃO_0 (PESSOA x []) {
 
 
 
-double MULTILAYER_PERCEPTRON (double INPUT1, double INPUT2, double INPUT3, double INPUT4, double INPUT5, PESSOA *x ) {
+double MULTILAYER_PERCEPTRON (double INPUT1, double INPUT2, double INPUT3, double INPUT4, PESSOA *x ) {
 
     int index = 0;
         
-        for (int k = 0; k < 10; k++) {
+        for (int k = 0; k < 5; k++) {
            
             x -> NEURÓNIO_HIDDEN_LAYER[k] = INPUT1 * x -> GENES[index++] +
                                      INPUT2 * x -> GENES[index++] +
                                      INPUT3 * x -> GENES[index++] +
-                                     INPUT4 * x -> GENES[index++] +
-                                     INPUT5 * x -> GENES[index++];
+                                     INPUT4 * x -> GENES[index++];
                                                 
                                      
             x -> NEURÓNIO_HIDDEN_LAYER[k] += x -> GENES[index++];
@@ -389,7 +398,7 @@ double MULTILAYER_PERCEPTRON (double INPUT1, double INPUT2, double INPUT3, doubl
             }
 
                
-        for (int j = 0; j < 10; j++) {
+        for (int j = 0; j < 5; j++) {
             
             x -> OUTPUT_NEURÓNIO_HIDDEN_LAYER[j] = FUNÇÃO_ATIVAÇÃO_ReLU (x -> NEURÓNIO_HIDDEN_LAYER[j]);
         
@@ -397,7 +406,7 @@ double MULTILAYER_PERCEPTRON (double INPUT1, double INPUT2, double INPUT3, doubl
         
 
         x -> OUTPUT = 0;
-        for (int z = 0; z < 10; z++) {
+        for (int z = 0; z < 5; z++) {
 
             x -> OUTPUT += x -> OUTPUT_NEURÓNIO_HIDDEN_LAYER[z] * x -> GENES[index++];
         }
@@ -587,8 +596,7 @@ void MAIN_LOOP (PESSOA x [], struct TUBOS colunas[], Texture2D Flappy) {
         double output = MULTILAYER_PERCEPTRON ((double) x[i].POS_INICIAL_Y / (double) ALTURA,
                        (double) x[i].X_TO_NEXTPIPE / (double) LARGURA,
                        (double) x[i].VELOCIDADE_Y / (double) 10.0,
-                       ((double) x[i].CENTRO_COORDENADA_PIPE - (double) x[i].POS_INICIAL_Y) / (double) ALTURA,
-                        (double) TUBO_GAP / (double) ALTURA,
+                       ((double) x[i].CENTRO_COORDENADA_PIPE - (double) x[i].POS_INICIAL_Y) / (double) ALTURA, 
                        &x[i]);
 
         

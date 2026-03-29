@@ -15,7 +15,7 @@
 #define NUM_ELITES 25 
 #define TAXA_DE_MUTAÇÃO 0.05 
 #define NÚMERO_TUBOS 75
-#define NÚMERO_GENES 21
+#define NÚMERO_GENES 26
 #define NÚMERO_NEURÓNIOS_CAMADA_OCULTA 5
 
 bool COLISÃO_CIMA = false;
@@ -61,6 +61,8 @@ typedef struct {
     double OUTPUT_NEURÓNIO_HIDDEN_LAYER [NÚMERO_NEURÓNIOS_CAMADA_OCULTA];
     double OUTPUT;
 
+    int X_TO_NEXTPIPE;
+
 
 } PESSOA;
 
@@ -84,7 +86,7 @@ void RESET_JOGO (struct TUBOS colunas []);
 
 void GERAÇÃO_0 (PESSOA x []);
 
-double MULTILAYER_PERCEPTRON (double INPUT1, double INPUT2, PESSOA *x);
+double MULTILAYER_PERCEPTRON (double INPUT1, double INPUT2, double INPUT3, PESSOA *x);
 
 void NEXT_GERAÇÕES (PESSOA x [], int ELITES);
 void FILHOS_NEXT_GERAÇÕES (PESSOA *PAI1, PESSOA *PAI2, PESSOA *FILHO, int NÚMERO_DE_GENES);
@@ -132,7 +134,7 @@ int main () {
 
     FILE* LOGS;
 
-    LOGS = fopen ("2INPUTSNORMALIZADOS_5NEURÓNIOS_RelU_SIGMOID.txt", "w");
+    LOGS = fopen ("3INPUTSNORMALIZADOS_5NEURÓNIOS_RelU_SIGMOID.txt", "w");
          
 
     while (!WindowShouldClose()) {
@@ -217,7 +219,9 @@ int main () {
 
 
         DrawText(TextFormat("Input 1 = %lf", (double) x[40].POS_INICIAL_Y / (double) ALTURA), 30, 110, 25, BLACK);
-        DrawText(TextFormat("Input 2 = %lf", (double) x[40].VELOCIDADE_Y / (double) 10.0), 30, 140, 25, BLACK);
+        DrawText(TextFormat("Input 2 = %lf", (double) x[40].X_TO_NEXTPIPE / (double) LARGURA), 30, 140, 25, BLACK);
+        DrawText(TextFormat("Input 3 = %lf", (double) x[40].VELOCIDADE_Y / (double) 10.0), 30, 170, 25, BLACK);
+        
 /*
         DrawText(TextFormat("Input 1 = %lf", (double) x[40].POS_INICIAL_Y / (double) ALTURA), 30, 110, 25, BLACK);
         DrawText(TextFormat("Input 2 = %lf", (double) x[40].X_TO_NEXTPIPE / (double) LARGURA), 30, 140, 25, BLACK);
@@ -363,7 +367,6 @@ void GERAÇÃO_0 (PESSOA x []) {
             x[i].POS_INICIAL_Y = 60 + ((double)rand() / RAND_MAX) * (ALTURA - 40);
             x[i].VELOCIDADE_Y = 0.5;
 
-
             
     }
 }
@@ -371,14 +374,15 @@ void GERAÇÃO_0 (PESSOA x []) {
 
 
 
-double MULTILAYER_PERCEPTRON (double INPUT1, double INPUT2, PESSOA *x ) {
+double MULTILAYER_PERCEPTRON (double INPUT1, double INPUT2, double INPUT3, PESSOA *x ) {
 
     int index = 0;
         
         for (int k = 0; k < NÚMERO_NEURÓNIOS_CAMADA_OCULTA; k++) {
            
             x -> NEURÓNIO_HIDDEN_LAYER[k] = INPUT1 * x -> GENES[index++] +
-                                            INPUT2 * x -> GENES[index++];
+                                            INPUT2 * x -> GENES[index++] +
+                                            INPUT3 * x -> GENES[index++];
                                                 
                                      
             x -> NEURÓNIO_HIDDEN_LAYER[k] += x -> GENES[index++];
@@ -541,6 +545,14 @@ void MAIN_LOOP (PESSOA x [], struct TUBOS colunas[], Texture2D Flappy) {
                 //x[i].POS_INICIAL_Y += 200.0f;  
 
             }
+    
+                
+             if (NEXTPIPE != -1) {
+
+                x[i].X_TO_NEXTPIPE = (colunas[NEXTPIPE].POS_EIXO_X + 85) - x[i].POS_INICIAL_X;
+
+            }            
+
         } 
 
       
@@ -560,7 +572,7 @@ void MAIN_LOOP (PESSOA x [], struct TUBOS colunas[], Texture2D Flappy) {
         if (NEXTPIPE == -1 && x[i].VIVO == true) {
 
                 x[i].VIVO = false;
-                x[i].STORED_FITNESS = x[i].FITNESS + 500000; // bónus de vitória
+                x[i].STORED_FITNESS = x[i].FITNESS + 2000; // bónus de vitória
                 MORTES += 1;
               
         }
@@ -568,8 +580,9 @@ void MAIN_LOOP (PESSOA x [], struct TUBOS colunas[], Texture2D Flappy) {
 
       
         double output = MULTILAYER_PERCEPTRON ((double) x[i].POS_INICIAL_Y / (double) ALTURA,
-                       (double) x[i].VELOCIDADE_Y / (double) 10.0,
-                       &x[i]);
+                        (double) x[i].X_TO_NEXTPIPE / (double) LARGURA,
+                        (double) x[i].VELOCIDADE_Y / (double) 10.0, 
+                        &x[i]);
 
         
         if (output > 0.5) {
