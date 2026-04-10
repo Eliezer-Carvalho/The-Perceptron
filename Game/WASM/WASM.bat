@@ -9,7 +9,7 @@ emcc NeuroFlap.c -o index.html ^
 -lraylib ^
 --preload-file "C:/Users/eliez/Desktop/Neuro-Flap/Imagens/flappybird1.png@C:/Users/eliez/Desktop/Neuro-Flap/Imagens/flappybird1.png" ^
 --preload-file "C:/Users/eliez/Desktop/Neuro-Flap/Imagens/flappybird2.png@C:/Users/eliez/Desktop/Neuro-Flap/Imagens/flappybird2.png" ^
--s EXPORTED_FUNCTIONS="['_main', '_JUMP', '_GAME_ON']" ^
+-s EXPORTED_FUNCTIONS="['_main', '_JUMP', '_GAME_ON', '_RESET']" ^
 -s USE_GLFW=3 ^
 -s WASM=1 ^
 -s ALLOW_MEMORY_GROWTH=1 ^

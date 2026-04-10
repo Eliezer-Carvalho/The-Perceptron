@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html lang = "pt-BR">
+
+<html lang = "pt">
 
 <head>
 
-  <meta charset="UTF-8">
+  <meta charset = "UTF-8">
   <link rel = "stylesheet" href = "main.css">
-
+  
 </head>
 
 
 <body>
+
   <canvas id = "canvas"> </canvas>
 
   <script>
-
     var Module = {
       canvas: document.getElementById("canvas")
     };
-
 
     document.addEventListener ("keydown", (event) => {
       if (event.key === " ") {
@@ -25,11 +25,21 @@
       }
     })
 
-  
-
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "s") {
+        Module._JUMP();
+      }
+    })
+    
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "r") {
+          Module._RESET();
+        }
+    })
   </script>
 
   <script src = "index.js"> </script>
+
 </body>
 
 

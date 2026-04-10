@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdio.h>
 
 
 #define LARGURA 1800
@@ -29,7 +30,7 @@ bool COLISAO_BAIXO_REDE_NEURAL = false;
 bool COLISAO_CIMA_UTILIZADOR = false;
 bool COLISAO_BAIXO_UTILIZADOR = false;
 
-bool GAME_MODE = false;
+bool GAME_MODE = false; //Jogo não começa logo, espera input do utilizador para começar via JS
 bool GAME_MODE_AI = true;
 bool RESTART_GAME = false;
 bool WINNER = false;
@@ -82,16 +83,21 @@ typedef struct {
 double ACTIVATION_FUNCTION_TANH (double x);
 double ACTIVATION_FUNCTION_SIGMOID (double x);
 
-void INICIAR_VALORES (REDE_NEURAL *x, UTILIZADOR *z);
-void RESTART (REDE_NEURAL *x, UTILIZADOR *z, TUBOS y []);
-void JUMP (UTILIZADOR *z);
-void GAME_ON ();
+void INICIAR_VALORES (REDE_NEURAL *x);
+void RESTART (REDE_NEURAL *x, TUBOS y []);
+
+void RESET (); //Função para chamar o Reset do jogo via JS
+void GAME_ON (); //Função para chamar o inicio do jogo em JS
+void JUMP (); //Função para chamar o Jump via JS
 
 double REDE_NEURAL_AG (double INPUT1, double INPUT2, double INPUT3, double INPUT4, REDE_NEURAL *x);
 
 void RUN_REDE_NEURAL (REDE_NEURAL *x, TUBOS y [], Texture2D Flappy_AI);
-void RUN_PLAYER1 (UTILIZADOR *z, TUBOS y [], Texture2D Flappy_UTI);
+void RUN_PLAYER1 (TUBOS y [], Texture2D Flappy_UTI);
 
+UTILIZADOR player_1; //IMPORTANTE - Definição da struct UTILIZADOR fora do main para poder declarar a função JUMP sem apontador.
+//O motivo é porque em JS quando chamamos uma função, temos de passar os argumentos e com JS não podemos passar apontadores.
+//Desta maneira a struct fica como variável global e em C uma variável global é acessivel diretamente a partir de qualquer função
 
 
 int main () {
@@ -118,12 +124,10 @@ int main () {
         POS_INICIAL_X_PRIMEIRO_PIPE += 380;
     }   
 
-
+    
     REDE_NEURAL multilayer_perceptron_ag;
-    UTILIZADOR player_1;
-
-    INICIAR_VALORES (&multilayer_perceptron_ag, &player_1);
-
+    
+    INICIAR_VALORES (&multilayer_perceptron_ag);
 
     while (!WindowShouldClose()) {
 
@@ -134,7 +138,7 @@ int main () {
                 RUN_REDE_NEURAL (&multilayer_perceptron_ag, colunas, Flappy_AI);
             }
 
-            RUN_PLAYER1 (&player_1, colunas, Flappy_UTI);
+            RUN_PLAYER1 (colunas, Flappy_UTI);
 
             if (WINNER == true) {
 
@@ -168,7 +172,9 @@ int main () {
             
             if (GAME_MODE == false && RESTART_GAME == true) {
                 
-                RESTART (&multilayer_perceptron_ag, &player_1, colunas);
+                RESTART (&multilayer_perceptron_ag, colunas);
+                RESTART_GAME = false; //Porque se não resetar o bool, da primeira vez funciona mas depois nas vezes seguintes ele salta direto 
+                //para o reset sem fazer a pergunta ao utilizador
             }
 
         EndDrawing();
@@ -198,7 +204,7 @@ double ACTIVATION_FUNCTION_SIGMOID (double x) {
 }
 
 
-void INICIAR_VALORES(REDE_NEURAL *x, UTILIZADOR *z) {
+void INICIAR_VALORES(REDE_NEURAL *x) {
     
     x -> VIVO = true;
     x -> POS_INICIAL_X = 200;
@@ -208,18 +214,16 @@ void INICIAR_VALORES(REDE_NEURAL *x, UTILIZADOR *z) {
     x -> X_TO_NEXTPIPE = 0;
   
     
-    z -> VIVO_UTI = true;
-    z -> POS_INICIAL_X_UTI = 200;
-    z -> POS_INICIAL_Y_UTI = 150;
-    z -> VELOCIDADE_Y_UTI = 0;
+    player_1.VIVO_UTI = true;
+    player_1.POS_INICIAL_X_UTI = 200;
+    player_1.POS_INICIAL_Y_UTI = 150;
+    player_1.VELOCIDADE_Y_UTI = 0;
 
 }
 
-
-
-void RESTART (REDE_NEURAL *x, UTILIZADOR *z, TUBOS y []) {
+void RESTART (REDE_NEURAL *x, TUBOS y []) {
             
-    INICIAR_VALORES(x, z);
+    INICIAR_VALORES(x);
 
     POS_INICIAL_X_PRIMEIRO_PIPE = 800;
 
@@ -234,18 +238,22 @@ void RESTART (REDE_NEURAL *x, UTILIZADOR *z, TUBOS y []) {
         y[i].ALTURA_TUBO_BAIXO = ALTURA_TUBO_BAIXO_2;
 
         POS_INICIAL_X_PRIMEIRO_PIPE += 320;
-    }
+    }   
 
-    GAME_MODE = true;    
+    GAME_MODE = true;
 }
 
-
-void JUMP (UTILIZADOR *z) {
-    z -> VELOCIDADE_Y_UTI = -8.8f;
+void RESET () {
+    RESTART_GAME = true;
 }
 
 void GAME_ON () {
     GAME_MODE = true;
+}
+
+
+void JUMP () {
+    player_1.VELOCIDADE_Y_UTI = -8.8f;
 }
 
 
@@ -361,22 +369,22 @@ void RUN_REDE_NEURAL (REDE_NEURAL *x, TUBOS y [], Texture2D Flappy_AI) { //Struc
 
 
 
-void RUN_PLAYER1 (UTILIZADOR *z, TUBOS y [], Texture2D Flappy_UTI) {
+void RUN_PLAYER1 (TUBOS y [], Texture2D Flappy_UTI) {
 
     int NEXTPIPE2 = -1;
    
-    z -> VELOCIDADE_Y_UTI += GRAVIDADE;
-    z -> POS_INICIAL_Y_UTI += z -> VELOCIDADE_Y_UTI;
+    player_1.VELOCIDADE_Y_UTI += GRAVIDADE;
+    player_1.POS_INICIAL_Y_UTI += player_1.VELOCIDADE_Y_UTI;
 
-
-    /*if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+/*
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         JUMP (z);
 	};
-			
-*/
+*/			
+
     Vector2 FLAPPYHITBOX_UTI = {
-                            z -> POS_INICIAL_X_UTI + (Flappy_UTI.width * 0.45 / 2 + 10),
-                            z -> POS_INICIAL_Y_UTI + (Flappy_UTI.height * 0.45 / 2)                                               
+                            player_1.POS_INICIAL_X_UTI + (Flappy_UTI.width * 0.45 / 2 + 10),
+                            player_1.POS_INICIAL_Y_UTI + (Flappy_UTI.height * 0.45 / 2)                                               
     };
 
 
@@ -389,7 +397,7 @@ void RUN_PLAYER1 (UTILIZADOR *z, TUBOS y [], Texture2D Flappy_UTI) {
         COLISAO_BAIXO_UTILIZADOR = CheckCollisionCircleRec (FLAPPYHITBOX_UTI, 20, PIPEBAIXO);
 
         
-        if (y[i].POS_EIXO_X + 95 >= z -> POS_INICIAL_X_UTI && NEXTPIPE2 == -1) {
+        if (y[i].POS_EIXO_X + 95 >= player_1.POS_INICIAL_X_UTI && NEXTPIPE2 == -1) {
     
             NEXTPIPE2 = i;
             SCORE = NEXTPIPE2;
@@ -398,19 +406,19 @@ void RUN_PLAYER1 (UTILIZADOR *z, TUBOS y [], Texture2D Flappy_UTI) {
         if (COLISAO_CIMA_UTILIZADOR == true || COLISAO_BAIXO_UTILIZADOR == true) {
 
             GAME_MODE = false;
-            RESTART_GAME = true;                 
+            //RESTART_GAME = true;                 
         }
     
     }
 
 
-    if (z -> POS_INICIAL_Y_UTI > (ALTURA - 45) || z -> POS_INICIAL_Y_UTI <= 0) {
+    if (player_1.POS_INICIAL_Y_UTI > (ALTURA - 45) || player_1.POS_INICIAL_Y_UTI <= 0) {
 
         GAME_MODE = false;
-        RESTART_GAME = true;
+        //RESTART_GAME = true;
     }
 
-    if (NEXTPIPE2 == -1 && z -> VIVO_UTI == true) {
+    if (NEXTPIPE2 == -1 && player_1.VIVO_UTI == true) {
         
         WINNER = true;        
     }

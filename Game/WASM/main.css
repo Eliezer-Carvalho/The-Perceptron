@@ -1,7 +1,9 @@
+* {
+    background-color: rgb(240, 234, 234);
+    overflow: hidden;
+}
+
 #canvas {
-
-    width: 100px;
-    height: 100px;
-
-
+    width: 1000px;
+    height: 500px;
 }
