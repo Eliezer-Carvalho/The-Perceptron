@@ -37,32 +37,19 @@
       canvas: document.getElementById("canvas")
     };
 
-    let gameStarted_PC = false;
-
-    document.addEventListener("click", () => {
-      if (gameStarted_PC == false) {
-        Module._GAME_ON();
-        gameStarted_PC = true;
-      } else {
-        Module._JUMP();
-      }
-    });
-
-    let gameStarted_MOBILE = false;
-
+    let gameStarted = false;
     const canvas = document.querySelector("canvas");
 
-    canvas.addEventListener("touchstart", (e) => {
-      e.preventDefault();
+    canvas.addEventListener("pointerdown", (e) => { //pointerdown funciona com toque para PC, CANETA e TOUCH GOAT STUFF
+      e.preventDefault(); //Previne começar com qualquer toque fora do canvas
 
-      if (!gameStarted_MOBILE) {
+      if (!gameStarted) {
         Module._GAME_ON();
-        gameStarted_MOBILE = true;
+        gameStarted = true;
       } else {
         Module._JUMP();
       }
     });
-
 
   </script>
 </div>

@@ -85,11 +85,11 @@
     
     .content #canvas {
         margin-top: 120px;
-        height: 250px;
+        height: 200px;
     }
 
     .footer {
         font-size: 8px;
-        margin-top: 4vh;
+        margin-top: 1vh;
     }
 }
