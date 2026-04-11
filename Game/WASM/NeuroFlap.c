@@ -34,11 +34,11 @@ bool GAME_MODE = false; //Jogo não começa logo, espera input do utilizador par
 bool GAME_MODE_AI = true;
 bool RESTART_GAME = false;
 bool WINNER = false;
+bool CLIQUE = true;
 
 int TUBO_GAP = 180;
 int SCORE = 0;
 int POS_INICIAL_X_PRIMEIRO_PIPE = 800;
-
 
 typedef struct {
 
@@ -84,9 +84,8 @@ double ACTIVATION_FUNCTION_TANH (double x);
 double ACTIVATION_FUNCTION_SIGMOID (double x);
 
 void INICIAR_VALORES (REDE_NEURAL *x);
-void RESTART (REDE_NEURAL *x, TUBOS y []);
 
-void RESET (); //Função para chamar o Reset do jogo via JS
+
 void GAME_ON (); //Função para chamar o inicio do jogo em JS
 void JUMP (); //Função para chamar o Jump via JS
 
@@ -108,6 +107,7 @@ int main () {
     SetTargetFPS (FPS);
     Texture2D Flappy_UTI = LoadTexture("C:/Users/eliez/Desktop/Neuro-Flap/Imagens/flappybird2.png");
     Texture2D Flappy_AI = LoadTexture ("C:/Users/eliez/Desktop/Neuro-Flap/Imagens/flappybird1.png");
+    Texture2D TAP = LoadTexture("tap-svgrepo-com.png");
 
 
     TUBOS colunas [NUMERO_TUBOS];
@@ -172,16 +172,25 @@ int main () {
             
             if (GAME_MODE == false && RESTART_GAME == true) {
                 
-                RESTART (&multilayer_perceptron_ag, colunas);
-                RESTART_GAME = false; //Porque se não resetar o bool, da primeira vez funciona mas depois nas vezes seguintes ele salta direto 
-                //para o reset sem fazer a pergunta ao utilizador
+                DrawRectangleRounded((Rectangle){100, ALTURA - 125, 300, 85}, 0.1, 1, DARKBLUE);
+                DrawText(TextFormat("Para jogar de novo reinicie a página!"), 118, ALTURA - 90, 15, RAYWHITE);
             }
+
+
+            if (CLIQUE == true && GAME_MODE == false) {
+                DrawTextureEx(TAP, (Vector2){240, 220}, 0, 0.5, BLACK);
+            }
+            if (GAME_MODE == true) {
+                CLIQUE = false;
+            }
+
 
         EndDrawing();
     }
 
     UnloadTexture(Flappy_AI);
     UnloadTexture(Flappy_UTI);
+    UnloadTexture(TAP);
     CloseWindow();
 
     return 0;
@@ -221,31 +230,6 @@ void INICIAR_VALORES(REDE_NEURAL *x) {
 
 }
 
-void RESTART (REDE_NEURAL *x, TUBOS y []) {
-            
-    INICIAR_VALORES(x);
-
-    POS_INICIAL_X_PRIMEIRO_PIPE = 800;
-
-    for (int i = 0; i < NUMERO_TUBOS; i++) {
-            
-        int ALTURA_MAX_TUBO_CIMA_2 = ALTURA - TUBO_GAP - 50;
-        int ALTURA_TUBO_CIMA_2 = rand() % (ALTURA_MAX_TUBO_CIMA_2 - 50) + 50;
-        int ALTURA_TUBO_BAIXO_2 = ALTURA - ALTURA_TUBO_CIMA_2 - TUBO_GAP;
-
-        y[i].POS_EIXO_X = POS_INICIAL_X_PRIMEIRO_PIPE;
-        y[i].ALTURA_TUBO_CIMA = ALTURA_TUBO_CIMA_2;
-        y[i].ALTURA_TUBO_BAIXO = ALTURA_TUBO_BAIXO_2;
-
-        POS_INICIAL_X_PRIMEIRO_PIPE += 320;
-    }   
-
-    GAME_MODE = true;
-}
-
-void RESET () {
-    RESTART_GAME = true;
-}
 
 void GAME_ON () {
     GAME_MODE = true;
@@ -376,11 +360,11 @@ void RUN_PLAYER1 (TUBOS y [], Texture2D Flappy_UTI) {
     player_1.VELOCIDADE_Y_UTI += GRAVIDADE;
     player_1.POS_INICIAL_Y_UTI += player_1.VELOCIDADE_Y_UTI;
 
-/*
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        JUMP (z);
+
+    /*if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        JUMP();
 	};
-*/			
+	*/		
 
     Vector2 FLAPPYHITBOX_UTI = {
                             player_1.POS_INICIAL_X_UTI + (Flappy_UTI.width * 0.45 / 2 + 10),
@@ -406,7 +390,7 @@ void RUN_PLAYER1 (TUBOS y [], Texture2D Flappy_UTI) {
         if (COLISAO_CIMA_UTILIZADOR == true || COLISAO_BAIXO_UTILIZADOR == true) {
 
             GAME_MODE = false;
-            //RESTART_GAME = true;                 
+            RESTART_GAME = true;              
         }
     
     }
@@ -415,19 +399,17 @@ void RUN_PLAYER1 (TUBOS y [], Texture2D Flappy_UTI) {
     if (player_1.POS_INICIAL_Y_UTI > (ALTURA - 45) || player_1.POS_INICIAL_Y_UTI <= 0) {
 
         GAME_MODE = false;
-        //RESTART_GAME = true;
+        RESTART_GAME = true;
     }
 
     if (NEXTPIPE2 == -1 && player_1.VIVO_UTI == true) {
         
-        WINNER = true;        
+        WINNER = true;
+        RESTART_GAME = true;
     }
 }
 
 
-//Os 2 flappys fica muito confuso
-//Gravar rede neural a treinar
-//WASM Windows
 
 
 
