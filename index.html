@@ -50,11 +50,10 @@
 
     let gameStarted_MOBILE = false;
 
-    document.addEventListener("touchstart", (e) => {
-      const canvas = document.querySelector("canvas");
+    const canvas = document.querySelector("canvas");
 
-
-      if (!canvas.contains(e.target)) return;
+    canvas.addEventListener("touchstart", (e) => {
+      e.preventDefault();
 
       if (!gameStarted_MOBILE) {
         Module._GAME_ON();
