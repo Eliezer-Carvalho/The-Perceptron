@@ -107,7 +107,7 @@ int main () {
     SetTargetFPS (FPS);
     Texture2D Flappy_UTI = LoadTexture("C:/Users/eliez/Desktop/Neuro-Flap/Imagens/flappybird2.png");
     Texture2D Flappy_AI = LoadTexture ("C:/Users/eliez/Desktop/Neuro-Flap/Imagens/flappybird1.png");
-    Texture2D TAP = LoadTexture("tap-svgrepo-com.png");
+    Texture2D TAP = LoadTexture("C:/Users/eliez/Desktop/Neuro-Flap/Imagens/Logos/tap.png.png");
 
 
     TUBOS colunas [NUMERO_TUBOS];
@@ -172,8 +172,8 @@ int main () {
             
             if (GAME_MODE == false && RESTART_GAME == true) {
                 
-                DrawRectangleRounded((Rectangle){100, ALTURA - 125, 300, 85}, 0.1, 1, DARKBLUE);
-                DrawText(TextFormat("Para jogar de novo reinicie a página!"), 118, ALTURA - 90, 15, RAYWHITE);
+                DrawRectangleRounded((Rectangle){100, ALTURA - 125, 680, 100}, 0.1, 1, DARKBLUE);
+                DrawText(TextFormat("Para jogar de novo reinicie a página!"), 118, ALTURA - 90, 35, RAYWHITE);
             }
 
 
@@ -408,21 +408,3 @@ void RUN_PLAYER1 (TUBOS y [], Texture2D Flappy_UTI) {
         RESTART_GAME = true;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
