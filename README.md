@@ -72,7 +72,7 @@ Architecture:
 <ul>
   <li> Input Layer -> 4 Normalized Inputs </li>
   <li> Hidden Layer -> 5 Neurons with Tanh Activation Function </li>
-  <li> Output Layer -> 2 Neurons with Sigmoid Activation Function </li>
+  <li> Output Layer -> 1 Neuron with Sigmoid Activation Function </li>
 </ul>
  
 <h3> <a href = "https://eliezer-carvalho.github.io/Neuro-Flap/" target = "_blank"> Do you think you can beat it ? :) </a> </h3>
