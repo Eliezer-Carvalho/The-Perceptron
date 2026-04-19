@@ -10,7 +10,7 @@
 
 <h1> Description </h1>
 <p>
-  <b> Neural Networks are models inspired by the human brain that are capable of machine learning and pattern recognition. </b> <br>
+  <b>Neural Networks are models inspired by the human brain that are capable of machine learning and pattern recognition. </b> <br>
   
   Developed in C using Raylib, the project includes the implementation of a Perceptron, the Genetic Algorithm training method, and an exploration of Activation Functions and network architectures. 
   The best solutions were subsequently analysed using different hidden layer sizes.
