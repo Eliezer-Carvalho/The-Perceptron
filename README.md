@@ -1,6 +1,6 @@
 <div align = center> 
 <h1> Neuro Flap </h1>
-<p>  Neuro Flap is a project that applies a Neural Network optimized with Genetic Alghoritms to the game </b><i> Flappy Bird</i>! </p>
+<p>  Neuro Flap is a project that applies a Feedforward Neural Network optimized with Genetic Alghoritms to the game </b><i> Flappy Bird</i>! </p>
 </div>
 
 <p align ="center"> 
@@ -10,7 +10,7 @@
 
 <h1> Description </h1>
 <p>
-  <b> Neural Networks are models inspired by the human brain that are capable of machine learning and pattern recognition. </b> <br>
+  <b>Neural Networks are models inspired by the human brain that are capable of machine learning and pattern recognition. </b> <br>
   
   Developed in C using Raylib, the project includes the implementation of a Perceptron, the Genetic Algorithm training method, and an exploration of Activation Functions and network architectures. 
   The best solutions were subsequently analysed using different hidden layer sizes.
@@ -72,7 +72,7 @@ Architecture:
 <ul>
   <li> Input Layer -> 4 Normalized Inputs </li>
   <li> Hidden Layer -> 5 Neurons with Tanh Activation Function </li>
-  <li> Output Layer -> 2 Neurons with Sigmoid Activation Function </li>
+  <li> Output Layer -> 1 Neuron with Sigmoid Activation Function </li>
 </ul>
  
 <h3> <a href = "https://eliezer-carvalho.github.io/Neuro-Flap/" target = "_blank"> Do you think you can beat it ? :) </a> </h3>
