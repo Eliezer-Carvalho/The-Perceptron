@@ -134,7 +134,7 @@ The project is also available on the Hugging Face Spaces platform, where the win
 <p>
 A comprehensive guide to help both beginners and more experienced enthusiasts develop Neural Networks! :)
 </p>
-<p align ="center">  <img width = "625" height = "950" src = "https://github.com/user-attachments/assets/6eaa2044-92ab-4384-b5b6-92d7090b321b"> </p>
+<p align ="center">  <img width = "625" height = "900" src = "https://github.com/user-attachments/assets/6eaa2044-92ab-4384-b5b6-92d7090b321b"> </p>
 
 <h1> Languages, Libraries and Environments </h1>
 <p>
